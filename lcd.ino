@@ -6,6 +6,7 @@ struct FormattedTime {
 };
 
 const int pauseBtnPin = 6;
+const int resetBtnPin = 7;
 
 const int rs = 12;
 const int enable = 11;
@@ -27,8 +28,9 @@ bool focusMode = true;
 
 int currentPauseState = 0;
 int prevPauseState = 0;
-
 unsigned long timerPausedAt;
+
+int resetTimer = 0;
 
 enum TimerState {
   PAUSED,
@@ -45,7 +47,9 @@ void setup() {
   startTime = millis();
 
   Serial.begin(9600);
+
   pinMode(pauseBtnPin, INPUT);
+  pinMode(resetBtnPin, INPUT);
 }
 
 void render(int minutes, int seconds, bool focusMode) {
@@ -87,16 +91,16 @@ void toggleTimer(int currentPauseState) {
 }
 
 long getRemainingTime() {
-  long remainingTime;
+  long time;
   unsigned long elapsedTime = millis() - startTime;
 
   if (focusMode) {
-    remainingTime = focusTime - elapsedTime;
+    time = focusTime - elapsedTime;
   } else {
-    remainingTime = breakTime - elapsedTime;
+    time = breakTime - elapsedTime;
   }
 
-  return remainingTime;
+  return time;
 }
 
 FormattedTime formatTime() {
@@ -109,9 +113,18 @@ FormattedTime formatTime() {
   return t;
 }
 
+void reset(int resetTimer) {
+  if(resetTimer == HIGH) {
+    startTime = millis();
+  }
+}
+
 void loop() {
   currentPauseState = digitalRead(pauseBtnPin);
   toggleTimer(currentPauseState);
+
+  resetTimer = digitalRead(resetBtnPin);
+  reset(resetTimer);
 
   switch (timerState) {
     case PAUSED:
