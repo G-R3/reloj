@@ -32,8 +32,7 @@ int prevPauseState = 0;
 unsigned long timerPausedAt;
 
 enum TimerState {
-  PAUSE,
-  RESUME,
+  PAUSED,
   RUNNING,
 };
 
@@ -69,7 +68,7 @@ void render(int minutes, int seconds, bool focusMode) {
 
 
   lcd.setCursor(5, 1);
-  if (timerState == PAUSE) {
+  if (timerState == PAUSED) {
     lcd.print("PAUSED");
   } else {
     lcd.print("      ");
@@ -80,9 +79,10 @@ void toggleTimer(int currentPauseState) {
   if (currentPauseState == 1 && prevPauseState == 0) {
     if (timerState == RUNNING) {
       timerPausedAt = millis();
-      timerState = PAUSE;
-    } else if (timerState == PAUSE) {
-      timerState = RESUME;
+      timerState = PAUSED;
+    } else {
+      startTime += millis() - timerPausedAt;
+      timerState = RUNNING;
     }
   }
 }
@@ -116,17 +116,11 @@ void loop() {
   toggleTimer(currentPauseState);
 
   switch (timerState) {
-    case PAUSE:
+    case PAUSED:
       {
         auto time = formatTime();
 
         render(time.minutes, time.seconds, focusMode);
-        break;
-      }
-    case RESUME:
-      {
-        startTime += millis() - timerPausedAt;
-        timerState = RUNNING;
         break;
       }
     case RUNNING:
@@ -182,6 +176,5 @@ void loop() {
       RUNNING:
         - timer counts down
         - do no recalculate startTime.
-
 
 */
