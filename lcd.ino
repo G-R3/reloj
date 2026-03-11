@@ -17,12 +17,11 @@ const int d7 = 2;
 LiquidCrystal lcd(rs, enable, d4, d5, d6, d7);
 
 unsigned long startTime;
-unsigned long passedTime;
 // const long focusTime = 1500000 // 25 minutes
-const long focusTime = 10000;  // 10 seconds
-const long breakTime = 8000;   // 8 seconds;
+unsigned long focusTime = 5000;  // 5 seconds
+unsigned long breakTime = 3000;  // 3 seconds;
 
-long remainingTime;
+long remainingTime = focusTime;
 
 bool focusMode = true;
 
@@ -103,7 +102,7 @@ long getRemainingTime() {
 FormattedTime formatTime() {
   FormattedTime t;
 
-  long totalSeconds = (remainingTime) / 1000;
+  long totalSeconds = (remainingTime + 999) / 1000;
   t.seconds = totalSeconds % 60;
   t.minutes = totalSeconds / 60;
 
@@ -112,7 +111,6 @@ FormattedTime formatTime() {
 
 void loop() {
   currentPauseState = digitalRead(pauseBtnPin);
-  Serial.println(currentPauseState);
   toggleTimer(currentPauseState);
 
   switch (timerState) {
@@ -142,39 +140,3 @@ void loop() {
 
   prevPauseState = currentPauseState;
 }
-
-
-/**
-  LCD pomodoro
-  - Menu
-    - startTime
-    - configure
-      - Set focus duration
-      - Set break duration
-        - maybe have some checks so that !(break > focus)
-    stats
-      - ???
-    
-
-    menu navigation:
-    - potentiometer, rotate to go through menu items. push button to confirm menu time
-    - push buttons. 1 push button to up a menu item and another to go down.
-
-    timer screen
-    - push button to pause
-    - push button to reset timer
-    - push button to exit to menu.
-
-
-    Time states:
-      PAUSED:
-        - timer does not count down
-        - record the time at the moment of pausing
-      RESUME:
-        - timer updates startTime. startTime + (millis() - timePausedAt)
-          - millis() does not stop counting when we pause.
-      RUNNING:
-        - timer counts down
-        - do no recalculate startTime.
-
-*/
