@@ -25,6 +25,8 @@ unsigned long breakTime = 3000;  // 3 seconds;
 long remainingTime = focusTime;
 
 bool focusMode = true;
+bool modeJustEnded = false;
+unsigned long modeEndedAt = 0;
 
 int currentPauseState = 0;
 int prevPauseState = 0;
@@ -114,8 +116,12 @@ FormattedTime formatTime() {
 }
 
 void reset(int resetTimer) {
-  if(resetTimer == HIGH) {
+  if (resetTimer == HIGH) {
     startTime = millis();
+
+    // we want to be able to reset during the transitioning phase (rendering 0:00).
+    modeEndedAt = 0;
+    modeJustEnded = false;
   }
 }
 
@@ -136,13 +142,25 @@ void loop() {
       }
     case RUNNING:
       {
-        remainingTime = getRemainingTime();
 
-        if (remainingTime <= 0) {
-          remainingTime = 0;
-          startTime = millis();
-          focusMode = !focusMode;
+        if (modeJustEnded) {
+          // render 0:00 for 1 second before transitioning to the next mode
+          if (millis() - modeEndedAt >= 1000) {
+            focusMode = !focusMode;
+            startTime = millis();
+            remainingTime = getRemainingTime();
+            modeJustEnded = false;
+          }
+        } else {
+          remainingTime = getRemainingTime();
+
+          if (remainingTime <= 0) {
+            remainingTime = 0;
+            modeEndedAt = millis();
+            modeJustEnded = true;
+          }
         }
+
 
         auto time = formatTime();
 
