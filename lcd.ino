@@ -189,6 +189,7 @@ void resetTime(int resetTimer) {
 void loop() {
   int navigate = digitalRead(menuBtnPin);
   if (navigate) {
+    // TODO: find how to debounce button presses. this is a hacky solution
     delay(100);
     navigate = digitalRead(menuBtnPin);
     if (navigate) {
@@ -201,6 +202,7 @@ void loop() {
   }
   int select = digitalRead(selectBtnPin);
   if (select) {
+    // TODO: find how to debounce button presses. this is a hacky solution
     delay(50);
     select = digitalRead(selectBtnPin);
     if (select) {
