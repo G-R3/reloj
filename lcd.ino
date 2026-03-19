@@ -29,7 +29,7 @@ LiquidCrystal lcd(rs, enable, d4, d5, d6, d7);
 unsigned long startTime;
 // const long focusTime = 1500000 // 25 minutes
 unsigned long focusTime = 5000;  // 5 seconds
-unsigned long breakTime = 3000;    // 3 seconds;
+unsigned long breakTime = 3000;  // 3 seconds;
 
 long remainingTime = focusTime;
 
@@ -180,7 +180,14 @@ void toggleTimer() {
     timerPausedAt = millis();
     timerState = PAUSED;
   } else {
-    startTime += millis() - timerPausedAt;
+    unsigned long pausedFor = millis() - timerPausedAt;
+
+    startTime += pausedFor;
+
+    if (modeJustEnded) {
+      modeEndedAt += pausedFor;
+    }
+
     timerState = RUNNING;
   }
 }
@@ -279,7 +286,6 @@ void loop() {
     if (wasPressed(resetBtn, millis())) {
       resetTime(HIGH);
     }
-
 
     switch (timerState) {
       case PAUSED:
