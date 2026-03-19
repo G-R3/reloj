@@ -48,6 +48,8 @@ unsigned long timerPausedAt;
 // unsigned long resetTimerDebounceDelay = 50;
 
 DebouncedButton resetBtn = {resetBtnPin, LOW, LOW, 0};
+DebouncedButton selectBtn = {selectBtnPin, LOW, LOW, 0};
+DebouncedButton menuBtn = {menuBtnPin, LOW, LOW, 0};
 
 enum TimerState {
   PAUSED,
@@ -220,17 +222,12 @@ void resetTime(int resetTimer) {
 }
 
 void loop() {
-  int navigate = digitalRead(menuBtnPin);
-  if (navigate) {
-    // TODO: find how to debounce button presses. this is a hacky solution
-    delay(100);
-    navigate = digitalRead(menuBtnPin);
-    if (navigate) {
-      selectedIndex += 1;
+  if (wasPressed(menuBtn, millis())) {
+    Serial.println("Navigating menu...");
+    selectedIndex += 1;
 
-      if (selectedIndex > 1) {
-        selectedIndex = 0;
-      }
+    if (selectedIndex > 1) {
+      selectedIndex = 0;
     }
   }
   int select = digitalRead(selectBtnPin);
