@@ -170,9 +170,12 @@ void initTimer() {
     focusMode = true;
     timerState = RUNNING;
 
-    // timerPausedAt = 0;
-    // currentPauseState = 0;
-    // prevPauseState = 0;
+    modeEndedAt = 0;
+    modeJustEnded = false;
+
+    timerPausedAt = 0;
+    currentPauseState = 0;
+    prevPauseState = 0;
   }
 }
 
