@@ -71,9 +71,9 @@ void render(int minutes, int seconds, bool focusMode) {
   lcd.setCursor(0, 0);
 
   if (focusMode) {
-    lcd.print("Focus Time");
+    lcd.print("Focus");
   } else {
-    lcd.print("Break Time");
+    lcd.print("Break");
   }
 
   lcd.setCursor(0, 1);
