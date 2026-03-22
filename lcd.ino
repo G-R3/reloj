@@ -1,15 +1,9 @@
 #include <LiquidCrystal.h>
+#include "button.h";
 
 struct FormattedTime {
   int seconds;
   int minutes;
-};
-
-struct DebouncedButton {
-  byte pin;
-  bool stableState;
-  bool lastReading;
-  unsigned long lastChangedTime;
 };
 
 const int pauseBtnPin = 6;
@@ -39,10 +33,10 @@ unsigned long modeEndedAt = 0;
 
 unsigned long timerPausedAt;
 
-DebouncedButton resetBtn = { resetBtnPin, LOW, LOW, 0 };
-DebouncedButton selectBtn = { selectBtnPin, LOW, LOW, 0 };
-DebouncedButton menuBtn = { menuBtnPin, LOW, LOW, 0 };
-DebouncedButton pauseBtn = { pauseBtnPin, LOW, LOW, 0 };
+Button resetBtn(resetBtnPin);
+Button selectBtn(selectBtnPin);
+Button menuBtn(menuBtnPin);
+Button pauseBtn(pauseBtnPin);
 
 enum TimerState {
   PAUSED,
@@ -71,25 +65,6 @@ void setup() {
   pinMode(resetBtnPin, INPUT);
   pinMode(menuBtnPin, INPUT);
   pinMode(selectBtnPin, INPUT);
-}
-
-bool wasPressed(DebouncedButton &btn, unsigned long now, unsigned long debounceMs = 50) {
-  bool reading = digitalRead(btn.pin);
-
-  if (reading != btn.lastReading) {
-    btn.lastReading = reading;
-    btn.lastChangedTime = now;
-  }
-
-  if ((now - btn.lastChangedTime) >= debounceMs && reading != btn.stableState) {
-    btn.stableState = reading;
-    if (btn.stableState == HIGH) {
-      return true;
-    }
-  }
-
-
-  return false;
 }
 
 void render(int minutes, int seconds, bool focusMode) {
@@ -232,7 +207,7 @@ void resetTime(int resetTimer) {
 }
 
 void loop() {
-  if (wasPressed(menuBtn, millis()) && screenState != TIMER) {
+  if (menuBtn.wasPressed(millis()) && screenState != TIMER) {
     Serial.println("Navigating menu...");
     selectedIndex += 1;
 
@@ -240,7 +215,7 @@ void loop() {
       selectedIndex = 0;
     }
   }
-  if (wasPressed(selectBtn, millis())) {
+  if (selectBtn.wasPressed(millis())) {
     if (screenState == TIMER) {
       lcd.clear();
       screenState = MENU;
@@ -279,11 +254,11 @@ void loop() {
   } else if (screenState == CONFIG) {
     renderConfig();
   } else if (screenState == TIMER) {
-    if (wasPressed(pauseBtn, millis())) {
+    if (pauseBtn.wasPressed(millis())) {
       toggleTimer();
     }
 
-    if (wasPressed(resetBtn, millis())) {
+    if (resetBtn.wasPressed(millis())) {
       resetTime(HIGH);
     }
 
