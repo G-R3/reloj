@@ -4,6 +4,10 @@ public:
     pin_ = pin;
   }
 
+  void begin() {
+    pinMode(pin_, INPUT);
+  }
+
   bool wasPressed(unsigned long now, unsigned long debounceMs = 50) {
     bool reading = digitalRead(pin_);
 

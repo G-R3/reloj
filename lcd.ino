@@ -61,10 +61,10 @@ void setup() {
 
   Serial.begin(9600);
 
-  pinMode(pauseBtnPin, INPUT);
-  pinMode(resetBtnPin, INPUT);
-  pinMode(menuBtnPin, INPUT);
-  pinMode(selectBtnPin, INPUT);
+  pauseBtn.begin();
+  resetBtn.begin();
+  menuBtn.begin();
+  selectBtn.begin();
 }
 
 void render(int minutes, int seconds, bool focusMode) {
