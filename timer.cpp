@@ -11,6 +11,9 @@ void Timer::begin(unsigned long now) {
 }
 
 void Timer::update(unsigned long now) {
+
+  if (state_ == TimerState::PAUSED) return;
+
   if (modeJustEnded_) {
     // render 0:00 for 1 second before transitioning to the next mode
     if (now - modeEndedAt_ >= 1000) {
@@ -30,7 +33,7 @@ void Timer::update(unsigned long now) {
   }
 }
 
-void Timer::pause(unsigned long now) {
+void Timer::togglePause(unsigned long now) {
   if (state_ == TimerState::RUNNING) {
     pausedAt_ = now;
     state_ = TimerState::PAUSED;
@@ -79,9 +82,9 @@ void Timer::reset(unsigned long now) {
 
   if (state_ == TimerState::PAUSED) {
     pausedAt_ = now;
-    remainingMs_ = Timer::computeRemainingMs(now);
   }
-
+  
+  remainingMs_ = Timer::computeRemainingMs(now);
   // we want to be able to reset during the transitioning phase (rendering 0:00).
   modeEndedAt_ = 0;
   modeJustEnded_ = false;
