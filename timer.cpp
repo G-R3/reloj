@@ -5,9 +5,23 @@ void Timer::begin(unsigned long now) {
 }
 
 void Timer::update(unsigned long now) {
-  // advance time
-  // update session state
-  // handle transition
+  if(modeJustEnded_) {
+      // render 0:00 for 1 second before transitioning to the next mode
+    if(now - modeEndedAt_ >= 1000) {
+      session_ = session_ == Session::Focus ? Session::Break : Session::Focus
+      startMs_ = now;
+      remainingMs_ = computeRemainingMs(now);
+      modeJustEnded_ = false;
+    }
+  } else {
+    remainingMs_ = computeRemainingMs(now);
+
+    if(remainingMs_ <= 0) {
+      remainingMs_ = 0;
+      modeEndedAt_ = now;
+      modeJustEnded_ = true;
+    }
+  }
 }
 
 void Timer::pause(unsigned long now) {
