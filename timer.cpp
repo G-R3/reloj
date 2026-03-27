@@ -2,13 +2,19 @@
 
 void Timer::begin(unsigned long now) {
   startMs_ = now;
+  remainingMs_ = focusMs_;
+  session_ = TimerSession::FOCUS;
+  state_ = TimerState::RUNNING;
+  modeEndedAt_ = 0;
+  modeJustEnded_ = false;
+  pausedAt_ = 0;
 }
 
 void Timer::update(unsigned long now) {
   if (modeJustEnded_) {
     // render 0:00 for 1 second before transitioning to the next mode
     if (now - modeEndedAt_ >= 1000) {
-      session_ = session_ == Session::Focus ? Session::Break : Session::Focus;
+      session_ = session_ == TimerSession::FOCUS ? TimerSession::BREAK : TimerSession::FOCUS;
       startMs_ = now;
       remainingMs_ = computeRemainingMs(now);
       modeJustEnded_ = false;
@@ -25,9 +31,9 @@ void Timer::update(unsigned long now) {
 }
 
 void Timer::pause(unsigned long now) {
-  if (state_ == State::Running) {
+  if (state_ == TimerState::RUNNING) {
     pausedAt_ = now;
-    state_ = State::Paused;
+    state_ = TimerState::PAUSED;
   } else {
     unsigned long pausedFor = now - pausedAt_;
 
@@ -37,7 +43,7 @@ void Timer::pause(unsigned long now) {
       modeEndedAt_ += pausedFor;
     }
 
-    state_ = State::Running;
+    state_ = TimerState::RUNNING;
   }
 }
 
@@ -49,7 +55,7 @@ long Timer::computeRemainingMs(unsigned long now) const {
   long time;
   unsigned long elapsedTime = now - startMs_;
 
-  if (session_ == Session::Focus) {
+  if (session_ == TimerSession::FOCUS) {
     time = focusMs_ - elapsedTime;
   } else {
     time = breakMs_ - elapsedTime;
@@ -71,7 +77,7 @@ FormattedTime Timer::format() const {
 void Timer::reset(unsigned long now) {
   startMs_ = now;
 
-  if (state_ == State::Paused) {
+  if (state_ == TimerState::PAUSED) {
     pausedAt_ = now;
     remainingMs_ = Timer::computeRemainingMs(now);
   }
@@ -86,10 +92,10 @@ void Timer::setDurations(unsigned long focusMs, unsigned long breakMs) {
   breakMs_ = breakMs;
 }
 
-Session Timer::session() const {
+TimerSession Timer::session() const {
   return session_;
 }
 
-State Timer::state() const {
+TimerState Timer::state() const {
   return state_;
 }

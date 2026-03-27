@@ -1,7 +1,7 @@
-enum class State { Paused,
-                   Running };
-enum class Session { Focus,
-                     Break };
+enum class TimerState { PAUSED,
+                   RUNNING };
+enum class TimerSession { FOCUS,
+                     BREAK };
 
 struct FormattedTime {
   int minutes;
@@ -18,8 +18,8 @@ public:
 
   long remainingMs() const;
   FormattedTime format() const;
-  State state() const;
-  Session session() const;
+  TimerState state() const;
+  TimerSession session() const;
 
 private:
   long computeRemainingMs(unsigned long now) const;
@@ -28,8 +28,8 @@ private:
   unsigned long breakMs_ = 3000;
   long remainingMs_ = focusMs_;
 
-  State state_ = State::Running;
-  Session session_ = Session::Focus;
+  TimerState state_ = TimerState::RUNNING;
+  TimerSession session_ = TimerSession::FOCUS;
 
   bool modeJustEnded_ = false;
   unsigned long modeEndedAt_ = 0;
