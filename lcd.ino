@@ -138,9 +138,9 @@ void loop() {
       // renderMenu();
     } else if (screenState == MENU) {
       if (selectedIndex == 0) {
-        screenState = TIMER;
         lcd.clear();
         initTimer();
+        screenState = TIMER;
         Serial.println("Starting Timer...");
       } else if (selectedIndex == 1) {
         lcd.clear();
@@ -172,7 +172,7 @@ void loop() {
     renderConfig();
   } else if (screenState == TIMER) {
     if (pauseBtn.wasPressed(millis())) {
-      timer.pause(millis());
+      timer.togglePause(millis());
     }
 
     if (resetBtn.wasPressed(millis())) {

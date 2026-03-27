@@ -12,7 +12,7 @@ class Timer {
 public:
   void begin(unsigned long now);
   void update(unsigned long now);
-  void pause(unsigned long now);
+  void togglePause(unsigned long now);
   void reset(unsigned long now);
   void setDurations(unsigned long focusMs, unsigned long breakMs);
 
@@ -23,7 +23,7 @@ public:
 
 private:
   long computeRemainingMs(unsigned long now) const;
-  unsigned long startMs_;
+  unsigned long startMs_ = 0;
   unsigned long focusMs_ = 5000;
   unsigned long breakMs_ = 3000;
   long remainingMs_ = focusMs_;
@@ -34,5 +34,5 @@ private:
   bool modeJustEnded_ = false;
   unsigned long modeEndedAt_ = 0;
 
-  unsigned long pausedAt_;
+  unsigned long pausedAt_ = 0;
 };
