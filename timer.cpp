@@ -1,0 +1,68 @@
+#include "timer.h";
+
+void Timer::begin(unsigned long now) {
+  startMs_ = now;
+}
+
+void Timer::update(unsigned long now) {
+  // advance time
+  // update session state
+  // handle transition
+}
+
+void Timer::pause(unsigned long now) {
+  if (state_ == State::Running) {
+    pausedAt_ = now;
+    state_ = State::Paused;
+  } else {
+    unsigned long pausedFor = now - pausedAt_;
+
+    startMs_ += pausedFor;
+
+    if (modeJustEnded_) {
+      modeEndedAt_ += pausedFor;
+    }
+
+    state_ = State::Running;
+  }
+}
+
+long Timer::remainingMs(unsigned long now) {
+    return remainingMs_;
+}
+
+FormattedTime Timer::format() {
+  FormattedTime t;
+
+  long totalSeconds = (remainingMs_ + 999) / 1000;
+  t.seconds = totalSeconds % 60;
+  t.minutes = totalSeconds / 60;
+
+  return t;
+}
+
+void Timer::reset(unsigned long now) {
+  startMs_ = now;
+
+  if(state_ == State::Paused) {
+    pausedAt_ = startMs_;
+    remainingMs_ = Timer::getRemainingMs(now);
+  }
+
+  // we want to be able to reset during the transitioning phase (rendering 0:00).
+  modeEndedAt_ = 0;
+  modeJustEnded_ = false;
+}
+
+void Timer::setDurations(unsigned long focusMs, unsigned long breakMs) {
+  focusMs_ = focusMs;
+  breakMs_ = breakMs;
+}
+
+Session Timer::session() {
+  return session_;
+}
+
+State Timer::state() {
+  return state_;
+}
