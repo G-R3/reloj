@@ -22,6 +22,7 @@ public:
   Session session() const;
 
 private:
+  long computeRemainingMs(unsigned long now) const;
   unsigned long startMs_;
   unsigned long focusMs_ = 5000;
   unsigned long breakMs_ = 3000;

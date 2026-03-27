@@ -31,6 +31,19 @@ long Timer::remainingMs(unsigned long now) {
     return remainingMs_;
 }
 
+long Timer::computeRemainingMs(unsigned long now) {
+  long time;
+  unsigned long elapsedTime = now - startMs_;
+
+  if(session_ == Session::Focus) {
+    time = focusMs - elapsedTime;
+  } else {
+    time = breakMs - elapsedTime;
+  }
+
+  return time;
+}
+
 FormattedTime Timer::format() {
   FormattedTime t;
 
