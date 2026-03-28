@@ -1,34 +1,15 @@
+#include <Arduino.h>
+
 class Button {
 public:
-  Button(byte pin) {
-    pin_ = pin;
-  }
+  explicit Button(byte pin);
 
-  void begin() {
-    pinMode(pin_, INPUT);
-  }
-
-  bool wasPressed(unsigned long now, unsigned long debounceMs = 50) {
-    bool reading = digitalRead(pin_);
-
-    if (reading != lastReading) {
-      lastReading = reading;
-      lastChangedTime = now;
-    }
-
-    if ((now - lastChangedTime) >= debounceMs && reading != stableState) {
-      stableState = reading;
-      if (stableState == HIGH) {
-        return true;
-      }
-    }
-
-    return false;
-  }
+  void begin();
+  bool wasPressed(unsigned long now, unsigned long debounceMs = 50);
 
 private:
   byte pin_;
-  bool stableState = LOW;
-  bool lastReading = LOW;
+  bool stableState = 0;
+  bool lastReading = 0;
   unsigned long lastChangedTime = 0;
 };
