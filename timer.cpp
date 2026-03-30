@@ -1,4 +1,4 @@
-#include "timer.h";
+#include "timer.h"
 
 void Timer::begin(unsigned long now) {
   startMs_ = now;
@@ -83,7 +83,7 @@ void Timer::reset(unsigned long now) {
   if (state_ == TimerState::PAUSED) {
     pausedAt_ = now;
   }
-  
+
   remainingMs_ = Timer::computeRemainingMs(now);
   // we want to be able to reset during the transitioning phase (rendering 0:00).
   modeEndedAt_ = 0;
