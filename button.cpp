@@ -10,14 +10,14 @@ void Button::begin() {
 bool Button::wasPressed(unsigned long now, unsigned long debounceMs) {
   bool reading = digitalRead(pin_);
 
-  if (reading != lastReading) {
-    lastReading = reading;
-    lastChangedTime = now;
+  if (reading != lastReading_) {
+    lastReading_ = reading;
+    lastChangedTime_ = now;
   }
 
-  if ((now - lastChangedTime) >= debounceMs && reading != stableState) {
-    stableState = reading;
-    if (stableState == HIGH) {
+  if ((now - lastChangedTime_) >= debounceMs && reading != stableState_) {
+    stableState_ = reading;
+    if (stableState_ == HIGH) {
       return true;
     }
   }

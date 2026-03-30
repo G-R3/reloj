@@ -9,7 +9,7 @@ public:
 
 private:
   byte pin_;
-  bool stableState = 0;
-  bool lastReading = 0;
-  unsigned long lastChangedTime = 0;
+  bool stableState_ = 0;
+  bool lastReading_ = 0;
+  unsigned long lastChangedTime_ = 0;
 };
