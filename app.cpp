@@ -62,6 +62,7 @@ void App::handleMenuInput(unsigned long now) {
         Serial.println("Starting timer...");
       } else if (selectedIndex_ == 1) {
         display_.clear();
+        selectedIndex_ = 0;
         screen_ = Screen::CONFIG;
         Serial.println("Rendering config...");
       }
