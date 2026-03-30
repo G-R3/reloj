@@ -1,6 +1,6 @@
-#include "timer.h";
-#include "button.h";
-#include "display.h";
+#include "timer.h"
+#include "button.h"
+#include "display.h"
 
 enum class Screen { MENU,
                     TIMER,
@@ -24,8 +24,8 @@ private:
 
   Button pauseBtn_{ 6 };
   Button resetBtn_{ 7 };
-  Button selectBtn_{ 8 };
-  Button menuBtn_{ 9 };
+  Button menuBtn_{ 8 };
+  Button selectBtn_{ 9 };
 
   Timer timer_;
   Display display_;
