@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #include "app.h"
 
 namespace button_pins {
@@ -58,21 +59,23 @@ void App::handleMenuInput(unsigned long now) {
         display_.clear();
         timer_.begin(now);
         screen_ = Screen::TIMER;
+        Serial.println("Starting timer...");
       } else if (selectedIndex_ == 1) {
         display_.clear();
         screen_ = Screen::CONFIG;
+        Serial.println("Rendering config...");
       }
     } else if (screen_ == Screen::CONFIG) {
       if (selectedIndex_ == 0) {
         long focusTime = 5000;
         long breakTime = 3000;
         timer_.setDurations(focusTime, breakTime);
-        Serial.println("Selected 5 seconds focus, 3 seconds break");
+        Serial.println("Selected 5 seconds focus, 3 seconds break. Returning to menu...");
       } else if (selectedIndex_ == 1) {
         long focusTime = 10000;
         long breakTime = 5000;
         timer_.setDurations(focusTime, breakTime);
-        Serial.println("Selected 10 seconds focus, 5 seconds break");
+        Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu..");
       }
 
       display_.clear();
@@ -87,16 +90,23 @@ void App::handleTimerInput(unsigned long now) {
     display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
+    Serial.println("Returning to menu...");
   } else if (pauseBtn_.wasPressed(now)) {
     timer_.togglePause(now);
+
+    bool isPaused = timer_.state() == TimerState::PAUSED;
+    const char* status = isPaused ? "Timer is paused..." : "Timer is unpaused...";
+    
+    Serial.println(status);
   } else if (resetBtn_.wasPressed(now)) {
     timer_.reset(now);
+    Serial.println("Timer was reset...");
   }
 }
 
 void App::handleMenuNav(unsigned long now) {
   if (menuNavBtn_.wasPressed(now) && screen_ != Screen::TIMER) {
-    Serial.println("IN APP Navigating menu...");
+    Serial.println("Navigating menu...");
     selectedIndex_ += 1;
 
     if (selectedIndex_ > 1) {

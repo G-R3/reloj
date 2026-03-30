@@ -24,7 +24,6 @@ private:
 
   Timer timer_;
   Display display_;
-  // Button button_;
 
   int selectedIndex_ = 0;
 
