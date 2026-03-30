@@ -1,4 +1,3 @@
-#include "HardwareSerial.h"
 #include "app.h"
 
 App::App(LiquidCrystal &dp)
@@ -11,8 +10,8 @@ void App::begin(unsigned long now) {
   timer_.begin(now);
   pauseBtn_.begin();
   resetBtn_.begin();
-  menuBtn_.begin();
-  menuBtn_.begin();
+  menuNavBtn_.begin();
+  selectBtn_.begin();
 
   display_.begin();
   display_.renderMenu(selectedIndex_);
@@ -20,7 +19,7 @@ void App::begin(unsigned long now) {
 
 void App::update() {
   unsigned long now = millis();
-  
+
   handleSelect(now);
   if(screen_ != Screen::TIMER) {
     handleMenuInput(now);
@@ -43,7 +42,7 @@ void App::update() {
 
 
 void App::handleMenuInput(unsigned long now) {
-  if (menuBtn_.wasPressed(now)) {
+  if (selectBtn_.wasPressed(now)) {
     if (screen_ == Screen::MENU) {
       if (selectedIndex_ == 0) {
         display_.clear();
@@ -74,7 +73,7 @@ void App::handleMenuInput(unsigned long now) {
 }
 
 void App::handleTimerInput(unsigned long now) {
-  if (menuBtn_.wasPressed(now)) { 
+  if (selectBtn_.wasPressed(now)) { 
     display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
@@ -85,8 +84,8 @@ void App::handleTimerInput(unsigned long now) {
   }
 }
 
-void App::handleSelect(unsigned long now) {
-  if (selectBtn_.wasPressed(now) && screen_ != Screen::TIMER) {
+void App::handleMenuNav(unsigned long now) {
+  if (menuNavBtn_.wasPressed(now) && screen_ != Screen::TIMER) {
     Serial.println("IN APP Navigating menu...");
     selectedIndex_ += 1;
 

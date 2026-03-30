@@ -1,5 +1,5 @@
-#include "timer.h"
 #include "button.h"
+#include "timer.h"
 #include "display.h"
 
 enum class Screen { MENU,
@@ -20,12 +20,12 @@ public:
 private:
   void handleMenuInput(unsigned long now);
   void handleTimerInput(unsigned long now);
-  void handleSelect(unsigned long now);
+  void handleMenuNav(unsigned long now);
 
   Button pauseBtn_{ 6 };
   Button resetBtn_{ 7 };
-  Button selectBtn_{ 8 };
-  Button menuBtn_{ 9 };
+  Button menuNavBtn_{ 8 };
+  Button selectBtn_{ 9 };
 
   Timer timer_;
   Display display_;
