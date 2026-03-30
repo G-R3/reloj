@@ -5,11 +5,6 @@
 enum class Screen { MENU,
                     TIMER,
                     CONFIG };
-// const int pauseBtnPin = 6;
-// const int resetBtnPin = 7;
-// const int menuBtnPin = 8;
-// const int selectBtnPin = 9;
-
 
 class App {
 public:
@@ -22,10 +17,10 @@ private:
   void handleTimerInput(unsigned long now);
   void handleMenuNav(unsigned long now);
 
-  Button pauseBtn_{ 6 };
-  Button resetBtn_{ 7 };
-  Button menuNavBtn_{ 8 };
-  Button selectBtn_{ 9 };
+  Button pauseBtn_;
+  Button resetBtn_;
+  Button menuNavBtn_;
+  Button selectBtn_;
 
   Timer timer_;
   Display display_;

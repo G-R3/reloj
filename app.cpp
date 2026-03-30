@@ -1,7 +1,18 @@
 #include "app.h"
 
+namespace button_pins {
+constexpr uint8_t pauseBtnPin = 6;
+constexpr uint8_t resetBtnPin = 7;
+constexpr uint8_t menuNavBtnPin = 8;
+constexpr uint8_t selectBtnPin = 9;
+}
+
 App::App(LiquidCrystal &dp)
-  : display_(dp) {}
+  : display_(dp),
+    pauseBtn_(button_pins::pauseBtnPin),
+    resetBtn_(button_pins::resetBtnPin),
+    menuNavBtn_(button_pins::menuNavBtnPin),
+    selectBtn_(button_pins::selectBtnPin) {}
 
 void App::begin(unsigned long now) {
   screen_ = Screen::MENU;
@@ -19,8 +30,8 @@ void App::begin(unsigned long now) {
 void App::update() {
   unsigned long now = millis();
 
-  handleSelect(now);
-  if(screen_ != Screen::TIMER) {
+  handleMenuNav(now);
+  if (screen_ != Screen::TIMER) {
     handleMenuInput(now);
   } else {
     handleTimerInput(now);
@@ -72,13 +83,13 @@ void App::handleMenuInput(unsigned long now) {
 }
 
 void App::handleTimerInput(unsigned long now) {
-  if (selectBtn_.wasPressed(now)) { 
+  if (selectBtn_.wasPressed(now)) {
     display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
-  } else if(pauseBtn_.wasPressed(now)) {
+  } else if (pauseBtn_.wasPressed(now)) {
     timer_.togglePause(now);
-  } else if(resetBtn_.wasPressed(now)) {
+  } else if (resetBtn_.wasPressed(now)) {
     timer_.reset(now);
   }
 }
@@ -91,5 +102,5 @@ void App::handleMenuNav(unsigned long now) {
     if (selectedIndex_ > 1) {
       selectedIndex_ = 0;
     }
-  } 
+  }
 }
