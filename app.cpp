@@ -1,5 +1,7 @@
 #include "app.h";
 
+App::App(LiquidCrystal &dp) : display_(dp) {}
+
 void App::begin(unsigned long now) {
   screen_ = Screen::MENU;
   selectedIndex_ = 0;
@@ -9,15 +11,21 @@ void App::begin(unsigned long now) {
   resetBtn_.begin();
   selectBtn_.begin();
   menuBtn_.begin();
+
+
+  display_.begin();
+  // display_.renderMenu(selectedIndex_);
 }
 
 void App::update() {
   handleSelect();
+
+  if (screen_ == Screen::MENU) {
+  }
 }
 
 
 void App::handleMenuInput(unsigned long now) {
-  
 }
 
 void App::handleTimerInput(unsigned long now) {
