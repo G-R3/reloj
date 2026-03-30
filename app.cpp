@@ -16,16 +16,12 @@ App::App(LiquidCrystal &dp)
     selectBtn_(button_pins::selectBtnPin) {}
 
 void App::begin(unsigned long now) {
-  screen_ = Screen::MENU;
-  selectedIndex_ = 0;
-
   pauseBtn_.begin();
   resetBtn_.begin();
   menuNavBtn_.begin();
   selectBtn_.begin();
 
   display_.begin();
-  display_.renderMenu(selectedIndex_);
 }
 
 void App::update() {
