@@ -3,32 +3,13 @@
 Display::Display(LiquidCrystal& dp)
   : lcd(dp) {}
 
-// pass object by reference
 void Display::begin() {
-  // set lcd object so members can utilize
-
-  // const int rs = 12;
-  // const int enable = 11;
-  // const int d4 = 5;
-  // const int d5 = 4;
-  // const int d6 = 3;
-  // const int d7 = 2;
-
-  // lcd = LiquidCrystal(rs, enable, d4, d5, d6, d7);
-
-  // lcd.begin(16, 2);
-  // lcd.clear();
-  // lcd.setCursor(0, 0);
   lcd.begin(16, 2);
   lcd.clear();
   lcd.setCursor(0, 0);
 }
 
 void Display::renderMenu(int selectedIndex) {
-  // state_ = ScreenState::MENU;
-
-  // should i guard the render methods to make sure lcd is present
-  // lcd.clear();
   lcd.setCursor(0, 0);
   if (selectedIndex == 0) {
     lcd.print(">");
@@ -47,8 +28,6 @@ void Display::renderMenu(int selectedIndex) {
 }
 
 void Display::renderConfig(int selectedIndex) {
-  // state_ = ScreenState::CONFIG;
-
   lcd.setCursor(0, 0);
   if (selectedIndex == 0) {
     lcd.print(">");
@@ -67,8 +46,6 @@ void Display::renderConfig(int selectedIndex) {
 }
 
 void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPaused) {
-  // state_ = ScreenState::TIMER;
-
   lcd.setCursor(0, 0);
 
   if (isFocused) {
