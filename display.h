@@ -9,6 +9,6 @@ public:
   void renderConfig(int selectedIndex);
   void clear();
 
-  private:
-    LiquidCrystal lcd;
+private:
+  LiquidCrystal lcd;
 };
