@@ -10,5 +10,5 @@ public:
   void clear();
 
 private:
-  LiquidCrystal lcd;
+  LiquidCrystal& lcd;
 };
