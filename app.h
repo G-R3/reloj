@@ -20,12 +20,12 @@ public:
 private:
   void handleMenuInput(unsigned long now);
   void handleTimerInput(unsigned long now);
-  void handleSelect();
+  void handleSelect(unsigned long now);
 
   Button pauseBtn_{ 6 };
   Button resetBtn_{ 7 };
-  Button menuBtn_{ 8 };
-  Button selectBtn_{ 9 };
+  Button selectBtn_{ 8 };
+  Button menuBtn_{ 9 };
 
   Timer timer_;
   Display display_;
