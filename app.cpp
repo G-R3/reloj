@@ -7,7 +7,6 @@ void App::begin(unsigned long now) {
   screen_ = Screen::MENU;
   selectedIndex_ = 0;
 
-  timer_.begin(now);
   pauseBtn_.begin();
   resetBtn_.begin();
   menuNavBtn_.begin();
