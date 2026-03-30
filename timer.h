@@ -1,7 +1,7 @@
 enum class TimerState { PAUSED,
-                   RUNNING };
+                        RUNNING };
 enum class TimerSession { FOCUS,
-                     BREAK };
+                          BREAK };
 
 struct FormattedTime {
   int minutes;
