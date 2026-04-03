@@ -40,8 +40,8 @@ void App::begin(unsigned long now) {
 void App::update() {
   unsigned long now = millis();
 
-  handleMenuNav(now);
   if (screen_ != Screen::TIMER) {
+    handleMenuNav(now);
     handleMenuSelect(now);
   } else {
     handleTimerInput(now);
