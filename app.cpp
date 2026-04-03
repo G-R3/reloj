@@ -18,7 +18,6 @@ constexpr int count = 2;
 namespace config_items {
 constexpr int shortPreset = 0;
 constexpr int longPreset = 1;
-constexpr int buzzer = 2;
 constexpr int count = 3;
 }
 
