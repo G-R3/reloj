@@ -6,9 +6,23 @@ constexpr uint8_t pauseBtnPin = 6;
 constexpr uint8_t resetBtnPin = 7;
 constexpr uint8_t menuNavBtnPin = 8;
 constexpr uint8_t selectBtnPin = 9;
+constexpr uint8_t piezoPin = 10;
 }
 
-App::App(LiquidCrystal &dp)
+namespace menu_items {
+constexpr int start = 0;
+constexpr int config = 1;
+constexpr int count = 2;
+}
+
+namespace config_items {
+constexpr int shortPreset = 0;
+constexpr int longPreset = 1;
+constexpr int buzzer = 2;
+constexpr int count = 3;
+}
+
+App::App(LiquidCrystal& dp)
   : display_(dp),
     pauseBtn_(button_pins::pauseBtnPin),
     resetBtn_(button_pins::resetBtnPin),
@@ -51,33 +65,29 @@ void App::update() {
 void App::handleMenuInput(unsigned long now) {
   if (selectBtn_.wasPressed(now)) {
     if (screen_ == Screen::MENU) {
-      if (selectedIndex_ == 0) {
+      if (selectedIndex_ == menu_items::start) {
         display_.clear();
         timer_.begin(now);
         screen_ = Screen::TIMER;
         Serial.println("Starting timer...");
-      } else if (selectedIndex_ == 1) {
+      } else if (selectedIndex_ == menu_items::config) {
         display_.clear();
         selectedIndex_ = 0;
         screen_ = Screen::CONFIG;
         Serial.println("Rendering config...");
       }
     } else if (screen_ == Screen::CONFIG) {
-      if (selectedIndex_ == 0) {
-        long focusTime = 5000;
-        long breakTime = 3000;
-        timer_.setDurations(focusTime, breakTime);
+      if (selectedIndex_ == config_items::shortPreset) {
+        timer_.setDurations(5000UL, 3000UL);
         Serial.println("Selected 5 seconds focus, 3 seconds break. Returning to menu...");
-      } else if (selectedIndex_ == 1) {
-        long focusTime = 10000;
-        long breakTime = 5000;
-        timer_.setDurations(focusTime, breakTime);
-        Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu..");
+      } else if (selectedIndex_ == config_items::longPreset) {
+        timer_.setDurations(10000UL, 5000UL);
+        Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
       }
 
       display_.clear();
       screen_ = Screen::MENU;
-      selectedIndex_ = 1;
+      selectedIndex_ = menu_items::config;
     }
   }
 }
@@ -93,7 +103,7 @@ void App::handleTimerInput(unsigned long now) {
 
     bool isPaused = timer_.state() == TimerState::PAUSED;
     const char* status = isPaused ? "Timer is paused..." : "Timer is unpaused...";
-    
+
     Serial.println(status);
   } else if (resetBtn_.wasPressed(now)) {
     timer_.reset(now);
