@@ -1,3 +1,5 @@
+#pragma once
+
 #include <LiquidCrystal.h>
 
 class Display {

@@ -1,3 +1,5 @@
+#pragma once
+
 enum class TimerState { PAUSED,
                         RUNNING };
 enum class TimerSession { FOCUS,

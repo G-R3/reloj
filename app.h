@@ -1,3 +1,5 @@
+#pragma once
+
 #include "button.h"
 #include "timer.h"
 #include "display.h"
