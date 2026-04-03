@@ -42,7 +42,7 @@ void App::update() {
 
   handleMenuNav(now);
   if (screen_ != Screen::TIMER) {
-    handleMenuInput(now);
+    handleMenuSelect(now);
   } else {
     handleTimerInput(now);
   }
@@ -61,7 +61,7 @@ void App::update() {
 }
 
 
-void App::handleMenuInput(unsigned long now) {
+void App::handleMenuSelect(unsigned long now) {
   if (selectBtn_.wasPressed(now)) {
     if (screen_ == Screen::MENU) {
       if (selectedIndex_ == menu_items::start) {
@@ -111,7 +111,7 @@ void App::handleTimerInput(unsigned long now) {
 }
 
 void App::handleMenuNav(unsigned long now) {
-  if (menuNavBtn_.wasPressed(now) && screen_ != Screen::TIMER) {
+  if (menuNavBtn_.wasPressed(now)) {
     Serial.println("Navigating menu...");
     selectedIndex_ += 1;
 

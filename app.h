@@ -15,7 +15,7 @@ public:
   void update();
 
 private:
-  void handleMenuInput(unsigned long now);
+  void handleMenuSelect(unsigned long now);
   void handleTimerInput(unsigned long now);
   void handleMenuNav(unsigned long now);
 
