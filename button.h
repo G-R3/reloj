@@ -8,7 +8,7 @@ public:
 
   void begin();
   bool wasPressed(unsigned long now, unsigned long debounceMs = 50);
-  bool wasLongPress(unsigned long now,unsigned long debounceMs = 50, unsigned long holdMs = 2000);
+  bool wasLongPress(unsigned long now,unsigned long debounceMs = 50, unsigned long holdMs = 800);
 
 private:
   byte pin_;
