@@ -17,5 +17,5 @@ private:
   unsigned long lastChangedTime_ = 0;
 
   unsigned long pressedAt_ = 0;
-  unsigned long isLongPress = false;
+  unsigned long isLongPress_ = false;
 };

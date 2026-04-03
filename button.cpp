@@ -39,17 +39,17 @@ bool Button::wasLongPress(unsigned long now, unsigned long debounceMs, unsigned 
 
     if (stableState_ == HIGH) {
       pressedAt_ = now;
-      isLongPress = false;
+      isLongPress_= false;
     } else {
       pressedAt_ = 0;
-      isLongPress = false;
+      isLongPress_= false;
     }
   }
 
   // if we have clicked the button, have passed the hold threshold, and i have yet to
   // mark this as a long press... mark it as a long press.
-  if(stableState_ == HIGH && !isLongPress && (now - pressedAt_) > holdMs) {
-    isLongPress = true;
+  if(stableState_ == HIGH && !isLongPress_ && (now - pressedAt_) > holdMs) {
+    isLongPress_= true;
     return true;
   }
 
