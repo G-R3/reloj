@@ -8,10 +8,14 @@ public:
 
   void begin();
   bool wasPressed(unsigned long now, unsigned long debounceMs = 50);
+  bool wasLongPress(unsigned long now,unsigned long debounceMs = 50, unsigned long holdMs = 2000);
 
 private:
   byte pin_;
   bool stableState_ = 0;
   bool lastReading_ = 0;
   unsigned long lastChangedTime_ = 0;
+
+  unsigned long pressedAt_ = 0;
+  unsigned long isLongPress = false;
 };
