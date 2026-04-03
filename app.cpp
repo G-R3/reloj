@@ -92,7 +92,7 @@ void App::handleMenuSelect(unsigned long now) {
 }
 
 void App::handleTimerInput(unsigned long now) {
-  if (selectBtn_.wasPressed(now)) {
+  if (selectBtn_.wasLongPress(now)) {
     display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
