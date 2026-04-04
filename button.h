@@ -11,6 +11,8 @@ public:
   bool wasLongPressed(unsigned long now,unsigned long debounceMs = 50, unsigned long holdMs = 800);
 
 private:
+  void update(unsigned long now, unsigned long debounceMs = 50);
+
   byte pin_;
   bool stableState_ = 0;
   bool lastReading_ = 0;
