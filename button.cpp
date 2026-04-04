@@ -20,10 +20,10 @@ void Button::update(unsigned long now, unsigned long debounceMs) {
 
     if (stableState_ == HIGH) {
       pressedAt_ = now;
-      longPressHandled_ = false;
+      isLongPress_ = false;
     } else {
       pressedAt_ = 0;
-      longPressHandled_ = false;
+      isLongPress_ = false;
     }
   }
 }
@@ -45,8 +45,8 @@ bool Button::wasLongPressed(unsigned long now, unsigned long holdMs, unsigned lo
 
     // if we have clicked the button, have passed the hold threshold, and i have yet to
   // mark this as a long press... mark it as a long press.
-  if (stableState_ == HIGH && !longPressHandled_ && (now - pressedAt_) >= holdMs) {
-    longPressHandled_ = true;
+  if (stableState_ == HIGH && !isLongPress_ && (now - pressedAt_) >= holdMs) {
+    isLongPress_ = true;
     return true;
   }
 
