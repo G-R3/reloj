@@ -7,6 +7,7 @@ void Button::begin() {
   pinMode(pin_, INPUT);
 }
 
+
 bool Button::wasPressed(unsigned long now, unsigned long debounceMs) {
   int reading = digitalRead(pin_);
 
@@ -26,7 +27,7 @@ bool Button::wasPressed(unsigned long now, unsigned long debounceMs) {
 }
 
 
-bool Button::wasLongPress(unsigned long now, unsigned long debounceMs, unsigned long holdMs) {
+bool Button::wasLongPressed(unsigned long now, unsigned long debounceMs, unsigned long holdMs) {
   int reading = digitalRead(pin_);
 
   if (reading != lastReading_) {
