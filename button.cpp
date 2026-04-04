@@ -8,6 +8,15 @@ void Button::begin() {
 }
 
 void Button::update(unsigned long now, unsigned long debounceMs) {
+  if (hasUpdated_ && lastUpdatedAt_ == now) {
+    return;
+  }
+
+  hasUpdated_ = true;
+  lastUpdatedAt_ = now;
+  isPressed_ = false;
+  wasReleased_ = false;
+
   bool reading = digitalRead(pin_);
 
   if (reading != lastReading_) {
@@ -20,8 +29,10 @@ void Button::update(unsigned long now, unsigned long debounceMs) {
 
     if (stableState_ == HIGH) {
       pressedAt_ = now;
+      isPressed_ = true;
       isLongPress_ = false;
     } else {
+      wasReleased_ = true;
       pressedAt_ = 0;
       isLongPress_ = false;
     }
@@ -31,24 +42,36 @@ void Button::update(unsigned long now, unsigned long debounceMs) {
 bool Button::wasPressed(unsigned long now, unsigned long debounceMs) {
   update(now, debounceMs);
 
-  // isn't pressedAT_ ONLY ever going to be equal to now when stableState_ == HIGH?
-  // if so, stableState_ is not necessary?
-  if (stableState_ == HIGH && pressedAt_ == now) {
-    return true;
-  }
-
-  return false;
+  Serial.println("button was pressed...");
+  return isPressed_;
 }
 
 bool Button::wasLongPressed(unsigned long now, unsigned long holdMs, unsigned long debounceMs) {
   update(now, debounceMs);
 
-    // if we have clicked the button, have passed the hold threshold, and i have yet to
-  // mark this as a long press... mark it as a long press.
   if (stableState_ == HIGH && !isLongPress_ && (now - pressedAt_) >= holdMs) {
+    Serial.println("button was held past hold threshold...");
     isLongPress_ = true;
     return true;
   }
 
+  Serial.println("NOT held...");
+
   return false;
+}
+
+bool Button::isPressed(unsigned long now, unsigned long debounceMs) {
+  update(now, debounceMs);
+
+  const char* status = stableState_ == HIGH ? "Button is being held..." : "Button is not pressed...";
+  Serial.println(status);
+  return stableState_ == HIGH;
+}
+
+bool Button::wasReleased(unsigned long now, unsigned long debounceMs) {
+  update(now, debounceMs);
+  
+  const char* status = wasReleased_ ? "Button was released..." : "Button is not released...";
+  Serial.println(status);
+  return wasReleased_;
 }
