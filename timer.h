@@ -45,7 +45,7 @@ private:
   // whether the timer progression is tempirarily frozen
   unsigned long timerFronzen_ = false;
   // whent he timer was frozen
-  unsigned long timerFronzenAt_ = 0; 
+  unsigned long timerFronzenAt_ = 0;
   // whether the frozen time should be added back into the timer when the frezze is canceled
-  unsigned long timerFronzeCompensatesTime_ = false; 
+  unsigned long timerFronzeCompensatesTime_ = false;
 };

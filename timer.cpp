@@ -109,31 +109,31 @@ TimerState Timer::state() const {
 
 void Timer::beginTimerFreeze(unsigned long now) {
 
-  if(timerFronzen_) return;
+  if (timerFronzen_) return;
 
   timerFronzen_ = true;
   timerFronzenAt_ = now;
 
-  if(state_ == TimerState::RUNNING) {
+  if (state_ == TimerState::RUNNING) {
     timerFronzeCompensatesTime_ = true;
-  } 
+  }
 }
 
-void Timer::endTimerFreeze(unsigned long now, bool shouldCompensateElapsedTime) {
-  if(!timerFronzen_) return;
+void Timer::endTimerFreeze(unsigned long now) {
+  if (!timerFronzen_) return;
 
-  
-  if(shouldCompensateElapsedTime && timerFronzeCompensatesTime_) {
-    
+
+  if (timerFronzeCompensatesTime_) {
+
     unsigned long fronzenFor = now - timerFronzenAt_;
-    
+
     startMs_ += fronzenFor;
-    
-    if(modeEnded_) {
+
+    if (modeJustEnded_) {
       modeEndedAt_ = fronzenFor;
     }
   }
-  
+
   timerFronzen_ = false;
   timerFronzenAt_ = 0;
   timerFronzeCompensatesTime_ = false;
@@ -144,10 +144,14 @@ void Timer::skip(unsigned long now) {
 
   startMs_ = now;
   remainingMs_ = computeRemainingMs(now);
-  modeEnded_ = false;
+  modeJustEnded_ = false;
   modeEndedAt_ = 0;
-  
-  if(state_ == TimerState::PAUSED) {
+
+  if (state_ == TimerState::PAUSED) {
     pausedAt_ = now;
   }
+}
+
+bool Timer::isTimerFrozen() const {
+  return timerFronzen_;
 }
