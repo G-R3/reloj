@@ -70,7 +70,7 @@ bool Button::isPressed(unsigned long now, unsigned long debounceMs) {
 
 bool Button::wasReleased(unsigned long now, unsigned long debounceMs) {
   update(now, debounceMs);
-  
+
   const char* status = wasReleased_ ? "Button was released..." : "Button is not released...";
   Serial.println(status);
   return wasReleased_;
