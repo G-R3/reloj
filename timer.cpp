@@ -8,11 +8,15 @@ void Timer::begin(unsigned long now) {
   modeEndedAt_ = 0;
   modeJustEnded_ = false;
   pausedAt_ = 0;
+
+  timerFronzen_ = false;
+  timerFronzeCompensatesTime_ = false;
+  timerFronzenAt_ = 0;
 }
 
 void Timer::update(unsigned long now) {
 
-  if (state_ == TimerState::PAUSED) return;
+  if (state_ == TimerState::PAUSED || timerFronzen_) return;
 
   if (modeJustEnded_) {
     // render 0:00 for 1 second before transitioning to the next mode
@@ -101,4 +105,49 @@ TimerSession Timer::session() const {
 
 TimerState Timer::state() const {
   return state_;
+}
+
+void Timer::beginTimerFreeze(unsigned long now) {
+
+  if(timerFronzen_) return;
+
+  timerFronzen_ = true;
+  timerFronzenAt_ = now;
+
+  if(state_ == TimerState::RUNNING) {
+    timerFronzeCompensatesTime_ = true;
+  } 
+}
+
+void Timer::endTimerFreeze(unsigned long now, bool shouldCompensateElapsedTime) {
+  if(!timerFronzen_) return;
+
+  
+  if(shouldCompensateElapsedTime && timerFronzeCompensatesTime_) {
+    
+    unsigned long fronzenFor = now - timerFronzenAt_;
+    
+    startMs_ += fronzenFor;
+    
+    if(modeEnded_) {
+      modeEndedAt_ = fronzenFor;
+    }
+  }
+  
+  timerFronzen_ = false;
+  timerFronzenAt_ = 0;
+  timerFronzeCompensatesTime_ = false;
+}
+
+void Timer::skip(unsigned long now) {
+  session_ = session_ == TimerSession::FOCUS ? TimerSession::BREAK : TimerSession::FOCUS;
+
+  startMs_ = now;
+  remainingMs_ = computeRemainingMs(now);
+  modeEnded_ = false;
+  modeEndedAt_ = 0;
+  
+  if(state_ == TimerState::PAUSED) {
+    pausedAt_ = now;
+  }
 }
