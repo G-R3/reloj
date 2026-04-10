@@ -40,6 +40,6 @@ private:
   int selectedIndex_ = 0;
 
   Screen screen_ = Screen::MENU;
-  HoldAction holdAction = HoldAction::NONE;
+  HoldAction holdAction_ = HoldAction::NONE;
   unsigned long holdStartedAt_ = 0;
 };

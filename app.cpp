@@ -56,8 +56,8 @@ void App::update() {
   } else if (screen_ == Screen::TIMER) {
     timer_.update(now);
 
-    if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU || fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
-      display_.renderFreeze("nice!", now - timerFreezeStartedAt_, button_timing::executedHoldMs);
+    if (holdAction_ == HoldAction::BACK_TO_MENU || holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
+      display_.renderFreeze("nice!", now - holdStartedAt_, button_timing::executeHoldMs);
     } else {
 
       auto t = timer_.format();
@@ -104,36 +104,36 @@ void App::handleMenuSelect(unsigned long now) {
 
 void App::cancelHoldAction(unsigned long now) {
   timer_.endTimerFreeze(now);
-  fronzeTimerIntent_ = AppFronzenTimerIntent::NONE;
-  timerFreezeStartedAt_ = 0;
+  holdAction_ = HoldAction::NONE;
+  holdStartedAt_ = 0;
   display_.clear();
 }
 
 void App::executeHoldAction(unsigned long now) {
-  if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU) {
+  if (holdAction_ == HoldAction::BACK_TO_MENU) {
     display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
     timer_.endTimerFreeze(now);
     Serial.println("Returning to menu...");
-  } else if (fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
+  } else if (holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
     timer_.endTimerFreeze(now);
     timer_.skip(now);
   }
 
-  timerFreezeStartedAt_ = 0;
-  fronzeTimerIntent_ = AppFronzenTimerIntent::NONE;
+  holdStartedAt_ = 0;
+  holdAction_ = HoldAction::NONE;
 }
 
 void App::handleHoldAction(unsigned long now) {
   bool wasLongPressed = false;
   bool wasReleased = false;
 
-  if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU) {
-    wasLongPressed = selectBtn_.wasLongPressed(now, button_timing::executedHoldMs);
+  if (holdAction_ == HoldAction::BACK_TO_MENU) {
+    wasLongPressed = selectBtn_.wasLongPressed(now, button_timing::executeHoldMs);
     wasReleased = selectBtn_.wasReleased(now);
-  } else if (fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
-    wasLongPressed = menuNavBtn_.wasLongPressed(now, button_timing::executedHoldMs);
+  } else if (holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
+    wasLongPressed = menuNavBtn_.wasLongPressed(now, button_timing::executeHoldMs);
     wasReleased = menuNavBtn_.wasReleased(now);
   }
 
@@ -142,7 +142,7 @@ void App::handleHoldAction(unsigned long now) {
   } else if (wasReleased) {
     // this is a defensive fallback. if release is processed before the long-press event fires,
     // we still confirm if the button was held long enough overall.
-    if ((now - timerFreezeStartedAt_) >= button_timing::executedHoldMs) {
+    if ((now - holdStartedAt_) >= button_timing::executeHoldMs) {
       executeHoldAction(now);
     } else {
       cancelHoldAction(now);
@@ -151,15 +151,15 @@ void App::handleHoldAction(unsigned long now) {
 }
 
 void App::handleTimerInput(unsigned long now) {
-  if (fronzeTimerIntent_ != AppFronzenTimerIntent::NONE) {
+  if (holdAction_ != HoldAction::NONE) {
     handleHoldAction(now);
     return;
   }
 
   if (selectBtn_.wasPressed(now)) {
     timer_.beginTimerFreeze(now);
-    fronzeTimerIntent_ = AppFronzenTimerIntent::BACK_TO_MENU;
-    timerFreezeStartedAt_ = now;
+    holdAction_ = HoldAction::BACK_TO_MENU;
+    holdStartedAt_ = now;
   } else if (pauseBtn_.wasPressed(now)) {
     timer_.togglePause(now);
 
@@ -172,8 +172,8 @@ void App::handleTimerInput(unsigned long now) {
     Serial.println("Timer was reset...");
   } else if (menuNavBtn_.wasPressed(now)) {
     timer_.beginTimerFreeze(now);
-    fronzeTimerIntent_ = AppFronzenTimerIntent::SKIP_TIMER_SESSION;
-    timerFreezeStartedAt_ = now;
+    holdAction_ = HoldAction::SKIP_TIMER_SESSION;
+    holdStartedAt_ = now;
   }
 }
 
