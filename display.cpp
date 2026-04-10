@@ -75,3 +75,24 @@ void Display::clear() {
   lcd.clear();
   lcd.setCursor(0, 0);
 }
+
+void Display::renderFreeze(const char* label, unsigned long elapsedMs, unsigned long holdMs) {
+  constexpr uint8_t barWidth = 14; // defines the space between the brackets [               ]
+  unsigned long clampedElapsed = elapsedMs > holdMs ? holdMs : elapsedMs;
+  uint8_t filled = holdMs == 0 ? barWidth : (clampedElapsed * barWidth) / holdMs;
+  // lcd.setCursor(0, 0);
+  // lcd.print("                ");
+
+  // lcd.setCursor(0, 1);
+  // lcd.print("                ");
+
+  lcd.setCursor(0, 0);
+  lcd.print("Hold: ");
+  lcd.print(label);
+  lcd.setCursor(0, 1);
+  lcd.print("[");
+  for (uint8_t i = 0; i < barWidth; ++i) {
+    lcd.print(i < filled ? "#" : " ");
+  }
+  lcd.print("]");
+}
