@@ -52,9 +52,16 @@ void App::update() {
   } else if (screen_ == Screen::TIMER) {
     timer_.update(now);
 
-    auto t = timer_.format();
+    if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU || fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
+      display_.renderFreeze("nice!", now - timerFreezeStartedAt_, 800);
+    } else {
 
-    display_.renderTimer(t.minutes, t.seconds, timer_.session() == TimerSession::FOCUS, timer_.state() == TimerState::PAUSED);
+      auto t = timer_.format();
+
+      display_.renderTimer(t.minutes, t.seconds, timer_.session() == TimerSession::FOCUS, timer_.state() == TimerState::PAUSED);
+    }
+
+
   } else {
     display_.renderConfig(selectedIndex_);
   }
@@ -91,12 +98,65 @@ void App::handleMenuSelect(unsigned long now) {
   }
 }
 
-void App::handleTimerInput(unsigned long now) {
-  if (selectBtn_.wasLongPressed(now)) {
+void App::cancelFronzenTimer(unsigned long now) {
+  timer_.endTimerFreeze(now);
+  fronzeTimerIntent_ = AppFronzenTimerIntent::NONE;
+  timerFreezeStartedAt_ = 0;
+  display_.clear();
+}
+
+void App::executeFrozenIntent(unsigned long now) {
+  if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU) {
     display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
+    timer_.endTimerFreeze(now);
     Serial.println("Returning to menu...");
+  } else if (fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
+    timer_.endTimerFreeze(now);
+    timer_.skip(now);
+  }
+
+  timerFreezeStartedAt_ = 0;
+  fronzeTimerIntent_ = AppFronzenTimerIntent::NONE;
+}
+
+void App::handleFronzeTimer(unsigned long now) {
+  bool wasLongPressed = false;
+  bool wasReleased = false;
+
+  if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU) {
+    wasLongPressed = selectBtn_.wasLongPressed(now, 800);
+    wasReleased = selectBtn_.wasReleased(now);
+  } else if (fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
+    wasLongPressed = menuNavBtn_.wasLongPressed(now, 800);
+    wasReleased = menuNavBtn_.wasReleased(now);
+  }
+
+  if (wasLongPressed) {
+    executeFrozenIntent(now);
+  } else if (wasReleased) {
+    // this is a defensive fallback. if release is processed before the long-press event fires,
+    // we still confirm if the button was held long enough overall.
+    if ((now - timerFreezeStartedAt_) >= 800) {
+      executeFrozenIntent(now);
+    } else {
+      cancelFronzenTimer(now);
+    }
+  }
+}
+
+void App::handleTimerInput(unsigned long now) {
+  if (fronzeTimerIntent_ != AppFronzenTimerIntent::NONE) {
+    handleFronzeTimer(now);
+
+    return;
+  }
+
+  if (selectBtn_.wasPressed(now)) {
+    timer_.beginTimerFreeze(now);
+    fronzeTimerIntent_ = AppFronzenTimerIntent::BACK_TO_MENU;
+    timerFreezeStartedAt_ = now;
   } else if (pauseBtn_.wasPressed(now)) {
     timer_.togglePause(now);
 
@@ -107,6 +167,10 @@ void App::handleTimerInput(unsigned long now) {
   } else if (resetBtn_.wasPressed(now)) {
     timer_.reset(now);
     Serial.println("Timer was reset...");
+  } else if (menuNavBtn_.wasPressed(now)) {
+    timer_.beginTimerFreeze(now);
+    fronzeTimerIntent_ = AppFronzenTimerIntent::SKIP_TIMER_SESSION;
+    timerFreezeStartedAt_ = now;
   }
 }
 
