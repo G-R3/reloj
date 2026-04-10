@@ -124,7 +124,6 @@ void Timer::endTimerFreeze(unsigned long now) {
 
 
   if (timerFronzeCompensatesTime_) {
-
     unsigned long fronzenFor = now - timerFronzenAt_;
 
     startMs_ += fronzenFor;
