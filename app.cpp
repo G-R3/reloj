@@ -21,6 +21,10 @@ constexpr int longPreset = 1;
 constexpr int count = 3;
 }
 
+namespace button_timing {
+constexpr int executeHoldMs = 800;
+}
+
 App::App(LiquidCrystal& dp)
   : display_(dp),
     pauseBtn_(button_pins::pauseBtnPin),
@@ -53,7 +57,7 @@ void App::update() {
     timer_.update(now);
 
     if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU || fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
-      display_.renderFreeze("nice!", now - timerFreezeStartedAt_, 800);
+      display_.renderFreeze("nice!", now - timerFreezeStartedAt_, button_timing::executedHoldMs);
     } else {
 
       auto t = timer_.format();
@@ -98,14 +102,14 @@ void App::handleMenuSelect(unsigned long now) {
   }
 }
 
-void App::cancelFronzenTimer(unsigned long now) {
+void App::cancelHoldAction(unsigned long now) {
   timer_.endTimerFreeze(now);
   fronzeTimerIntent_ = AppFronzenTimerIntent::NONE;
   timerFreezeStartedAt_ = 0;
   display_.clear();
 }
 
-void App::executeFrozenIntent(unsigned long now) {
+void App::executeHoldAction(unsigned long now) {
   if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU) {
     display_.clear();
     screen_ = Screen::MENU;
@@ -121,35 +125,34 @@ void App::executeFrozenIntent(unsigned long now) {
   fronzeTimerIntent_ = AppFronzenTimerIntent::NONE;
 }
 
-void App::handleFronzeTimer(unsigned long now) {
+void App::handleHoldAction(unsigned long now) {
   bool wasLongPressed = false;
   bool wasReleased = false;
 
   if (fronzeTimerIntent_ == AppFronzenTimerIntent::BACK_TO_MENU) {
-    wasLongPressed = selectBtn_.wasLongPressed(now, 800);
+    wasLongPressed = selectBtn_.wasLongPressed(now, button_timing::executedHoldMs);
     wasReleased = selectBtn_.wasReleased(now);
   } else if (fronzeTimerIntent_ == AppFronzenTimerIntent::SKIP_TIMER_SESSION) {
-    wasLongPressed = menuNavBtn_.wasLongPressed(now, 800);
+    wasLongPressed = menuNavBtn_.wasLongPressed(now, button_timing::executedHoldMs);
     wasReleased = menuNavBtn_.wasReleased(now);
   }
 
   if (wasLongPressed) {
-    executeFrozenIntent(now);
+    executeHoldAction(now);
   } else if (wasReleased) {
     // this is a defensive fallback. if release is processed before the long-press event fires,
     // we still confirm if the button was held long enough overall.
-    if ((now - timerFreezeStartedAt_) >= 800) {
-      executeFrozenIntent(now);
+    if ((now - timerFreezeStartedAt_) >= button_timing::executedHoldMs) {
+      executeHoldAction(now);
     } else {
-      cancelFronzenTimer(now);
+      cancelHoldAction(now);
     }
   }
 }
 
 void App::handleTimerInput(unsigned long now) {
   if (fronzeTimerIntent_ != AppFronzenTimerIntent::NONE) {
-    handleFronzeTimer(now);
-
+    handleHoldAction(now);
     return;
   }
 
