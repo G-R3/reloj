@@ -8,7 +8,7 @@ public:
 
   void begin();
   bool wasPressed(unsigned long now, unsigned long debounceMs = 50);
-  bool wasLongPressed(unsigned long now, unsigned long debounceMs = 50, unsigned long holdMs = 800);
+  bool wasLongPressed(unsigned long now, unsigned long holdMs = 800, unsigned long debounceMs = 50);
   /** whether the button is currently being held after debouncing */
   bool isPressed(unsigned long now, unsigned long debounceMs = 50);
   /** whether the button was released after deboucing */
