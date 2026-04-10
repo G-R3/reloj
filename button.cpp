@@ -42,7 +42,6 @@ void Button::update(unsigned long now, unsigned long debounceMs) {
 bool Button::wasPressed(unsigned long now, unsigned long debounceMs) {
   update(now, debounceMs);
 
-  Serial.println("button was pressed...");
   return isPressed_;
 }
 
