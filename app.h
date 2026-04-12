@@ -42,4 +42,10 @@ private:
   Screen screen_ = Screen::MENU;
   HoldAction holdAction_ = HoldAction::NONE;
   unsigned long holdStartedAt_ = 0;
+
+  // these will be used to ensure that the actual progress bar during a hold actually fills in the UI before the action
+  // can execute. its avoid having a janky progress bar in the UI.
+  bool holdConfirmed_ = false;                     // True after the bar is full, before the action runs.
+  unsigned long holdConfirmedAt_ = 0;              // When the bar first reached full.
+
 };

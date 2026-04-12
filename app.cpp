@@ -23,6 +23,7 @@ constexpr int count = 3;
 
 namespace button_timing {
 constexpr int executeHoldMs = 800;
+constexpr unsigned long holdFlashMs = 75;
 }
 
 App::App(LiquidCrystal& dp)
@@ -57,7 +58,8 @@ void App::update() {
     timer_.update(now);
 
     if (holdAction_ == HoldAction::BACK_TO_MENU || holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
-      display_.renderFreeze("nice!", now - holdStartedAt_, button_timing::executeHoldMs);
+      unsigned long elapsed = holdConfirmed_ ? button_timing::holdConfirmMs : (now - holdStartedAt_);
+      display_.renderHold("nice!", elapsed, button_timing::executeHoldMs);
     } else {
 
       auto t = timer_.format();
@@ -106,6 +108,10 @@ void App::cancelHoldAction(unsigned long now) {
   timer_.endTimerFreeze(now);
   holdAction_ = HoldAction::NONE;
   holdStartedAt_ = 0;
+
+  holdConfirmed_ = false;
+  holdConfirmedAt_ = 0;
+
   display_.clear();
 }
 
@@ -123,6 +129,9 @@ void App::executeHoldAction(unsigned long now) {
 
   holdStartedAt_ = 0;
   holdAction_ = HoldAction::NONE;
+  holdConfirmed_ = false;
+  holdConfirmedAt_ = 0;
+
 }
 
 void App::handleHoldAction(unsigned long now) {
@@ -137,16 +146,27 @@ void App::handleHoldAction(unsigned long now) {
     wasReleased = menuNavBtn_.wasReleased(now);
   }
 
-  if (wasLongPressed) {
-    executeHoldAction(now);
-  } else if (wasReleased) {
-    // this is a defensive fallback. if release is processed before the long-press event fires,
-    // we still confirm if the button was held long enough overall.
+  if(!holdConfirmed_ && wasLongPressed) {
+    holdConfirmed_ = true;
+    holdConfirmedAt_ = now;
+    return;
+  }
+
+  // this is a defensive fallback. if release is processed before the long-press event fires,
+  // we still confirm if the button was held long enough overall.
+  if (!holdConfirmed_ && wasReleased) {
     if ((now - holdStartedAt_) >= button_timing::executeHoldMs) {
-      executeHoldAction(now);
+      holdConfirmed_ = true;
+      holdConfirmedAt_ = now;
+      return;
     } else {
       cancelHoldAction(now);
+      return;
     }
+  }
+
+  if(holdConfirmed_ && (now - holdConfirmedAt_) >= button_timing::holdFlashMs) {
+    executeHoldAction(now);
   }
 }
 
@@ -160,6 +180,9 @@ void App::handleTimerInput(unsigned long now) {
     timer_.beginTimerFreeze(now);
     holdAction_ = HoldAction::BACK_TO_MENU;
     holdStartedAt_ = now;
+
+    holdConfirmed_ = false;
+    holdConfirmedAt_ = 0;
   } else if (pauseBtn_.wasPressed(now)) {
     timer_.togglePause(now);
 
@@ -174,6 +197,9 @@ void App::handleTimerInput(unsigned long now) {
     timer_.beginTimerFreeze(now);
     holdAction_ = HoldAction::SKIP_TIMER_SESSION;
     holdStartedAt_ = now;
+
+    holdConfirmed_ = false;
+    holdConfirmedAt_ = 0;
   }
 }
 

@@ -77,7 +77,7 @@ void Display::clear() {
   lcd.setCursor(0, 0);
 }
 
-void Display::renderFreeze(const char* label, unsigned long elapsedMs, unsigned long holdMs) {
+void Display::renderHold(const char* label, unsigned long elapsedMs, unsigned long holdMs) {
   constexpr uint8_t barWidth = 14; // defines the space between the brackets [               ]
   unsigned long clampedElapsed = elapsedMs > holdMs ? holdMs : elapsedMs;
   uint8_t filled = holdMs == 0 ? barWidth : (clampedElapsed * barWidth) / holdMs;
