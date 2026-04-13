@@ -119,11 +119,13 @@ void Timer::beginTimerFreeze(unsigned long now) {
   }
 }
 
-void Timer::endTimerFreeze(unsigned long now) {
+// if i ever add an action that would resume the timer after a hold, compensateElapsed will be useful to 
+// reimburse the timer the lost time.
+void Timer::endTimerFreeze(unsigned long now, bool compensateElapsed) {
   if (!timerFronzen_) return;
 
 
-  if (timerFronzeCompensatesTime_) {
+  if (compensateElapsed && timerFronzeCompensatesTime_) {
     unsigned long fronzenFor = now - timerFronzenAt_;
 
     startMs_ += fronzenFor;

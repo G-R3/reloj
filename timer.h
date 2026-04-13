@@ -19,7 +19,7 @@ public:
   void setDurations(unsigned long focusMs, unsigned long breakMs);
   void skip(unsigned long now);
   void beginTimerFreeze(unsigned long now);
-  void endTimerFreeze(unsigned long now);
+  void endTimerFreeze(unsigned long now, bool compensateElapsed = false); 
   bool isTimerFrozen() const;
 
 
