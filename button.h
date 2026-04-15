@@ -21,15 +21,15 @@ private:
 
   byte pin_;
   // Last stable button state after debouncing.
-  bool stableState_ = 0;
+  bool stableState_ = false;
   // Most recent raw reading from the pin.
-  bool lastReading_ = 0;
-  // Time when the raw reading last changed. used in our debounce checks
+  bool lastReading_ = false;
+  // Time when the raw reading last changed, used in debounce checks.
   unsigned long lastChangedTime_ = 0;
 
   unsigned long pressedAt_ = 0;
   // Tracks whether the current press already counted as a long press.
-  unsigned long isLongPress_ = false;
+  bool longPressConsumed_ = false;
   // True when a debounced press event is ready to be consumed.
   bool isPressed_ = false;
   // True when a debounced release event is ready to be consumed.
