@@ -14,6 +14,9 @@ enum class HoldAction {
   SKIP_TIMER_SESSION
 };
 
+/**
+  Coordinates button input, timer state, and screen updates.
+*/ 
 class App {
 public:
   explicit App(LiquidCrystal& lcd);
@@ -40,12 +43,16 @@ private:
   int selectedIndex_ = 0;
 
   Screen screen_ = Screen::MENU;
+
   HoldAction holdAction_ = HoldAction::NONE;
   unsigned long holdStartedAt_ = 0;
 
-  // these will be used to ensure that the actual progress bar during a hold actually fills in the UI before the action
-  // can execute. its avoid having a janky progress bar in the UI.
-  bool holdConfirmed_ = false;                     // True after the bar is full, before the action runs.
-  unsigned long holdConfirmedAt_ = 0;              // When the bar first reached full.
+  /** 
+    these will be used to ensure that the actual progress bar during a hold actually fills in the UI before the hold action can execute. its avoid having a janky progress bar in the UI.
+    */
+  // True once the hold progress bar has fully filled. 
+  bool holdConfirmed_ = false;
+  // Time when the hold progress bar first reached full.
+  unsigned long holdConfirmedAt_ = 0;
 
 };

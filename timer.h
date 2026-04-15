@@ -18,8 +18,14 @@ public:
   void reset(unsigned long now);
   void setDurations(unsigned long focusMs, unsigned long breakMs);
   void skip(unsigned long now);
+
+  // Temporarily stop countdown updates during a short-lived interaction.
+  // Unlike togglePause(), this does not change the timer state to PAUSED.
   void beginTimerFreeze(unsigned long now);
+  // End a freeze and optionally add the frozen time back.
+  // Unlike togglePause(), ending a freeze restores normal updates without acting like a user pause/resume.
   void endTimerFreeze(unsigned long now, bool compensateElapsed = false); 
+  // Return whether a temporary freeze is currently active.
   bool isTimerFrozen() const;
 
 
@@ -29,6 +35,7 @@ public:
   TimerSession session() const;
 
 private:
+  // Calculate the remaining time at the given moment.
   long computeRemainingMs(unsigned long now) const;
   unsigned long startMs_ = 0;
   unsigned long focusMs_ = 5000;
@@ -38,14 +45,15 @@ private:
   TimerState state_ = TimerState::RUNNING;
   TimerSession session_ = TimerSession::FOCUS;
 
+  // True right after a session finishes.
+  // this will keep the timer at `0:00` to avoid instantly jumping to the next session.
   bool modeJustEnded_ = false;
   unsigned long modeEndedAt_ = 0;
 
   unsigned long pausedAt_ = 0;
-  // whether the timer progression is tempirarily frozen
+
   unsigned long timerFronzen_ = false;
-  // whent he timer was frozen
   unsigned long timerFronzenAt_ = 0;
-  // whether the frozen time should be added back into the timer when the frezze is canceled
+  // True when ending the freeze should restore elapsed frozen time.
   unsigned long timerFronzeCompensatesTime_ = false;
 };
