@@ -1,4 +1,3 @@
-#include "HardwareSerial.h"
 #include "app.h"
 
 namespace button_pins {
@@ -6,7 +5,6 @@ constexpr uint8_t pauseBtnPin = 6;
 constexpr uint8_t resetBtnPin = 7;
 constexpr uint8_t menuNavBtnPin = 8;
 constexpr uint8_t selectBtnPin = 9;
-constexpr uint8_t piezoPin = 10;
 }
 
 namespace menu_items {
@@ -18,11 +16,18 @@ constexpr int count = 2;
 namespace config_items {
 constexpr int shortPreset = 0;
 constexpr int longPreset = 1;
-constexpr int count = 3;
+constexpr int count = 2;
+}
+
+namespace preset_durations {
+constexpr unsigned long shortFocusMs = 5000UL;
+constexpr unsigned long shortBreakMs = 3000UL;
+constexpr unsigned long longFocusMs = 10000UL;
+constexpr unsigned long longBreakMs = 5000UL;
 }
 
 namespace button_timing {
-constexpr int executeHoldMs = 800;
+constexpr unsigned long executeHoldMs = 800;
 constexpr unsigned long holdFlashMs = 75;
 }
 
@@ -34,6 +39,7 @@ App::App(LiquidCrystal& dp)
     selectBtn_(button_pins::selectBtnPin) {}
 
 void App::begin(unsigned long now) {
+  (void)now;
   pauseBtn_.begin();
   resetBtn_.begin();
   menuNavBtn_.begin();
@@ -43,7 +49,7 @@ void App::begin(unsigned long now) {
 }
 
 void App::update() {
-  unsigned long now = millis();
+  const unsigned long now = millis();
 
   if (screen_ != Screen::TIMER) {
     handleMenuNav(now);
@@ -57,22 +63,18 @@ void App::update() {
   } else if (screen_ == Screen::TIMER) {
     timer_.update(now);
 
-    if (holdAction_ == HoldAction::BACK_TO_MENU || holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
-      unsigned long elapsed = holdConfirmed_ ? button_timing::holdConfirmMs : (now - holdStartedAt_);
-      display_.renderHold("nice!", elapsed, button_timing::executeHoldMs);
+    if (holdAction_ != HoldAction::NONE) {
+      const unsigned long elapsed = holdConfirmed_ ? button_timing::executeHoldMs : (now - holdStartedAt_);
+      const char* holdLabel = holdAction_ == HoldAction::BACK_TO_MENU ? "menu" : "skip";
+      display_.renderHold(holdLabel, elapsed, button_timing::executeHoldMs);
     } else {
-
-      auto t = timer_.format();
-
+      const auto t = timer_.format();
       display_.renderTimer(t.minutes, t.seconds, timer_.session() == TimerSession::FOCUS, timer_.state() == TimerState::PAUSED);
     }
-
-
   } else {
     display_.renderConfig(selectedIndex_);
   }
 }
-
 
 void App::handleMenuSelect(unsigned long now) {
   if (selectBtn_.wasPressed(now)) {
@@ -90,10 +92,10 @@ void App::handleMenuSelect(unsigned long now) {
       }
     } else if (screen_ == Screen::CONFIG) {
       if (selectedIndex_ == config_items::shortPreset) {
-        timer_.setDurations(5000UL, 3000UL);
+        timer_.setDurations(preset_durations::shortFocusMs, preset_durations::shortBreakMs);
         Serial.println("Selected 5 seconds focus, 3 seconds break. Returning to menu...");
       } else if (selectedIndex_ == config_items::longPreset) {
-        timer_.setDurations(10000UL, 5000UL);
+        timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
       }
 
@@ -104,14 +106,24 @@ void App::handleMenuSelect(unsigned long now) {
   }
 }
 
-void App::cancelHoldAction(unsigned long now) {
-  timer_.endTimerFreeze(now);
-  holdAction_ = HoldAction::NONE;
-  holdStartedAt_ = 0;
-
+void App::startHoldAction(HoldAction action, unsigned long now) {
+  timer_.beginTimerFreeze(now);
+  holdAction_ = action;
+  holdStartedAt_ = now;
   holdConfirmed_ = false;
   holdConfirmedAt_ = 0;
+}
 
+void App::resetHoldActionState() {
+  holdAction_ = HoldAction::NONE;
+  holdStartedAt_ = 0;
+  holdConfirmed_ = false;
+  holdConfirmedAt_ = 0;
+}
+
+void App::cancelHoldAction(unsigned long now) {
+  timer_.endTimerFreeze(now, true);
+  resetHoldActionState();
   display_.clear();
 }
 
@@ -127,32 +139,30 @@ void App::executeHoldAction(unsigned long now) {
     timer_.skip(now);
   }
 
-  holdStartedAt_ = 0;
-  holdAction_ = HoldAction::NONE;
-  holdConfirmed_ = false;
-  holdConfirmedAt_ = 0;
-
+  resetHoldActionState();
 }
 
 void App::handleHoldAction(unsigned long now) {
-  bool wasLongPressed = false;
-  bool wasReleased = false;
+  Button* holdButton = nullptr;
 
   if (holdAction_ == HoldAction::BACK_TO_MENU) {
-    wasLongPressed = selectBtn_.wasLongPressed(now, button_timing::executeHoldMs);
-    wasReleased = selectBtn_.wasReleased(now);
+    holdButton = &selectBtn_;
   } else if (holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
-    wasLongPressed = menuNavBtn_.wasLongPressed(now, button_timing::executeHoldMs);
-    wasReleased = menuNavBtn_.wasReleased(now);
+    holdButton = &menuNavBtn_;
+  } else {
+    return;
   }
 
-  if(!holdConfirmed_ && wasLongPressed) {
+  const bool wasLongPressed = holdButton->wasLongPressed(now, button_timing::executeHoldMs);
+  const bool wasReleased = holdButton->wasReleased(now);
+
+  if (!holdConfirmed_ && wasLongPressed) {
     holdConfirmed_ = true;
     holdConfirmedAt_ = now;
     return;
   }
 
-  // this is a defensive fallback. if release is processed before the long-press event fires,
+  // This is a defensive fallback. If release is processed before the long-press event fires,
   // we still confirm if the button was held long enough overall.
   if (!holdConfirmed_ && wasReleased) {
     if ((now - holdStartedAt_) >= button_timing::executeHoldMs) {
@@ -165,7 +175,7 @@ void App::handleHoldAction(unsigned long now) {
     }
   }
 
-  if(holdConfirmed_ && (now - holdConfirmedAt_) >= button_timing::holdFlashMs) {
+  if (holdConfirmed_ && (now - holdConfirmedAt_) >= button_timing::holdFlashMs) {
     executeHoldAction(now);
   }
 }
@@ -177,16 +187,11 @@ void App::handleTimerInput(unsigned long now) {
   }
 
   if (selectBtn_.wasPressed(now)) {
-    timer_.beginTimerFreeze(now);
-    holdAction_ = HoldAction::BACK_TO_MENU;
-    holdStartedAt_ = now;
-
-    holdConfirmed_ = false;
-    holdConfirmedAt_ = 0;
+    startHoldAction(HoldAction::BACK_TO_MENU, now);
   } else if (pauseBtn_.wasPressed(now)) {
     timer_.togglePause(now);
 
-    bool isPaused = timer_.state() == TimerState::PAUSED;
+    const bool isPaused = timer_.state() == TimerState::PAUSED;
     const char* status = isPaused ? "Timer is paused..." : "Timer is unpaused...";
 
     Serial.println(status);
@@ -194,22 +199,14 @@ void App::handleTimerInput(unsigned long now) {
     timer_.reset(now);
     Serial.println("Timer was reset...");
   } else if (menuNavBtn_.wasPressed(now)) {
-    timer_.beginTimerFreeze(now);
-    holdAction_ = HoldAction::SKIP_TIMER_SESSION;
-    holdStartedAt_ = now;
-
-    holdConfirmed_ = false;
-    holdConfirmedAt_ = 0;
+    startHoldAction(HoldAction::SKIP_TIMER_SESSION, now);
   }
 }
 
 void App::handleMenuNav(unsigned long now) {
   if (menuNavBtn_.wasPressed(now)) {
     Serial.println("Navigating menu...");
-    selectedIndex_ += 1;
-
-    if (selectedIndex_ > 1) {
-      selectedIndex_ = 0;
-    }
+    const int itemCount = screen_ == Screen::MENU ? menu_items::count : config_items::count;
+    selectedIndex_ = (selectedIndex_ + 1) % itemCount;
   }
 }
