@@ -25,11 +25,11 @@ public:
   // accidentally unpausing a timer that was already paused before the hold began.
   void beginTimerFreeze(unsigned long now);
   // End a freeze and optionally add the frozen time back.
-  // Unlike togglePause(), ending a freeze restores normal updates without acting like a user pause/resume.
-  void endTimerFreeze(unsigned long now, bool compensateElapsed = false); 
+  // Unlike togglePause(), ending a freeze restores normal updates without acting
+  // like a user pause/resume.
+  void endTimerFreeze(unsigned long now, bool compensateElapsed = false);
   // Return whether a temporary freeze is currently active.
   bool isTimerFrozen() const;
-
 
   long remainingMs() const;
   FormattedTime format() const;
@@ -39,23 +39,24 @@ public:
 private:
   // Calculate the remaining time at the given moment.
   long computeRemainingMs(unsigned long now) const;
+  unsigned long sessionDurationMs() const;
   unsigned long startMs_ = 0;
   unsigned long focusMs_ = 5000;
   unsigned long breakMs_ = 3000;
-  long remainingMs_ = focusMs_;
+  long remainingMs_ = 5000;
 
   TimerState state_ = TimerState::RUNNING;
   TimerSession session_ = TimerSession::FOCUS;
 
   // True right after a session finishes.
-  // this will keep the timer at `0:00` to avoid instantly jumping to the next session.
+  // This keeps the timer at `0:00` to avoid instantly jumping to the next session.
   bool modeJustEnded_ = false;
   unsigned long modeEndedAt_ = 0;
 
   unsigned long pausedAt_ = 0;
 
-  unsigned long timerFronzen_ = false;
-  unsigned long timerFronzenAt_ = 0;
+  bool timerFrozen_ = false;
+  unsigned long timerFrozenAt_ = 0;
   // True when ending the freeze should restore elapsed frozen time.
-  unsigned long timerFronzeCompensatesTime_ = false;
+  bool freezeCompensatesElapsed_ = false;
 };

@@ -1,26 +1,30 @@
 #include "timer.h"
 
+namespace {
+constexpr unsigned long transitionDelayMs = 1000;
+}
+
 void Timer::begin(unsigned long now) {
   startMs_ = now;
-  remainingMs_ = focusMs_;
+  remainingMs_ = static_cast<long>(focusMs_);
   session_ = TimerSession::FOCUS;
   state_ = TimerState::RUNNING;
   modeEndedAt_ = 0;
   modeJustEnded_ = false;
   pausedAt_ = 0;
 
-  timerFronzen_ = false;
-  timerFronzeCompensatesTime_ = false;
-  timerFronzenAt_ = 0;
+  timerFrozen_ = false;
+  freezeCompensatesElapsed_ = false;
+  timerFrozenAt_ = 0;
 }
 
 void Timer::update(unsigned long now) {
 
-  if (state_ == TimerState::PAUSED || timerFronzen_) return;
+  if (state_ == TimerState::PAUSED || timerFrozen_) return;
 
   if (modeJustEnded_) {
     // render 0:00 for 1 second before transitioning to the next mode
-    if (now - modeEndedAt_ >= 1000) {
+    if (now - modeEndedAt_ >= transitionDelayMs) {
       session_ = session_ == TimerSession::FOCUS ? TimerSession::BREAK : TimerSession::FOCUS;
       startMs_ = now;
       remainingMs_ = computeRemainingMs(now);
@@ -59,16 +63,12 @@ long Timer::remainingMs() const {
 }
 
 long Timer::computeRemainingMs(unsigned long now) const {
-  long time;
-  unsigned long elapsedTime = now - startMs_;
+  const unsigned long elapsedTime = now - startMs_;
+  return static_cast<long>(sessionDurationMs()) - static_cast<long>(elapsedTime);
+}
 
-  if (session_ == TimerSession::FOCUS) {
-    time = focusMs_ - elapsedTime;
-  } else {
-    time = breakMs_ - elapsedTime;
-  }
-
-  return time;
+unsigned long Timer::sessionDurationMs() const {
+  return session_ == TimerSession::FOCUS ? focusMs_ : breakMs_;
 }
 
 FormattedTime Timer::format() const {
@@ -109,35 +109,31 @@ TimerState Timer::state() const {
 
 void Timer::beginTimerFreeze(unsigned long now) {
 
-  if (timerFronzen_) return;
+  if (timerFrozen_) return;
 
-  timerFronzen_ = true;
-  timerFronzenAt_ = now;
-
-  if (state_ == TimerState::RUNNING) {
-    timerFronzeCompensatesTime_ = true;
-  }
+  timerFrozen_ = true;
+  timerFrozenAt_ = now;
+  freezeCompensatesElapsed_ = state_ == TimerState::RUNNING;
 }
 
-// if i ever add an action that would resume the timer after a hold, compensateElapsed will be useful to 
-// reimburse the timer the lost time.
+
+// Reimburse elapsed time when a temporary hold action should not consume timer time. Should come in handy if I ever resume the timer screen after a hold.
 void Timer::endTimerFreeze(unsigned long now, bool compensateElapsed) {
-  if (!timerFronzen_) return;
+  if (!timerFrozen_) return;
 
+  if (compensateElapsed && freezeCompensatesElapsed_) {
+    const unsigned long frozenFor = now - timerFrozenAt_;
 
-  if (compensateElapsed && timerFronzeCompensatesTime_) {
-    unsigned long fronzenFor = now - timerFronzenAt_;
-
-    startMs_ += fronzenFor;
+    startMs_ += frozenFor;
 
     if (modeJustEnded_) {
-      modeEndedAt_ = fronzenFor;
+      modeEndedAt_ += frozenFor;
     }
   }
 
-  timerFronzen_ = false;
-  timerFronzenAt_ = 0;
-  timerFronzeCompensatesTime_ = false;
+  timerFrozen_ = false;
+  timerFrozenAt_ = 0;
+  freezeCompensatesElapsed_ = false;
 }
 
 void Timer::skip(unsigned long now) {
@@ -154,5 +150,5 @@ void Timer::skip(unsigned long now) {
 }
 
 bool Timer::isTimerFrozen() const {
-  return timerFronzen_;
+  return timerFrozen_;
 }
