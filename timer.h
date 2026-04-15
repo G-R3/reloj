@@ -19,8 +19,10 @@ public:
   void setDurations(unsigned long focusMs, unsigned long breakMs);
   void skip(unsigned long now);
 
-  // Temporarily stop countdown updates during a short-lived interaction.
-  // Unlike togglePause(), this does not change the timer state to PAUSED.
+  // Temporarily freeze countdown updates during a hold action.
+  // This is separate from togglePause() because a hold is not a real user pause:
+  // we want time to stop briefly without changing the timer state to PAUSED or
+  // accidentally unpausing a timer that was already paused before the hold began.
   void beginTimerFreeze(unsigned long now);
   // End a freeze and optionally add the frozen time back.
   // Unlike togglePause(), ending a freeze restores normal updates without acting like a user pause/resume.
