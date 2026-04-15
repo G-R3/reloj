@@ -2,79 +2,79 @@
 #include "Arduino.h"
 
 Display::Display(LiquidCrystal& dp)
-  : lcd(dp) {}
+  : lcd_(dp) {}
 
 void Display::begin() {
-  lcd.begin(16, 2);
-  lcd.clear();
-  lcd.setCursor(0, 0);
+  lcd_.begin(16, 2);
+  lcd_.clear();
+  lcd_.setCursor(0, 0);
 }
 
 void Display::renderMenu(int selectedIndex) {
-  lcd.setCursor(0, 0);
+  lcd_.setCursor(0, 0);
   if (selectedIndex == 0) {
-    lcd.print(">");
+    lcd_.print(">");
   } else {
-    lcd.print(" ");
+    lcd_.print(" ");
   }
-  lcd.print("Start");
+  lcd_.print("Start");
 
-  lcd.setCursor(0, 1);
+  lcd_.setCursor(0, 1);
   if (selectedIndex == 1) {
-    lcd.print(">");
+    lcd_.print(">");
   } else {
-    lcd.print(" ");
+    lcd_.print(" ");
   }
-  lcd.print("Config");
+  lcd_.print("Config");
 }
 
 void Display::renderConfig(int selectedIndex) {
-  lcd.setCursor(0, 0);
+  lcd_.setCursor(0, 0);
   if (selectedIndex == 0) {
-    lcd.print(">");
+    lcd_.print(">");
   } else {
-    lcd.print(" ");
+    lcd_.print(" ");
   }
-  lcd.print("5/3");
+  lcd_.print("5/3");
 
-  lcd.setCursor(0, 1);
+  lcd_.setCursor(0, 1);
   if (selectedIndex == 1) {
-    lcd.print(">");
+    lcd_.print(">");
   } else {
-    lcd.print(" ");
+    lcd_.print(" ");
   }
-  lcd.print("10/5");
+  lcd_.print("10/5");
 }
 
 void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPaused) {
-  lcd.setCursor(0, 0);
+  lcd_.setCursor(0, 0);
 
   if (isFocused) {
-    lcd.print("Focus");
+    lcd_.print("Focus");
   } else {
-    lcd.print("Break");
+    lcd_.print("Break");
   }
 
-  lcd.setCursor(0, 1);
-  if (minutes < 10) lcd.print("0");
-  lcd.print(minutes);
-  lcd.print(":");
-  if (seconds < 10) lcd.print("0");
-  lcd.print(seconds);
-  lcd.print(" ");
+  lcd_.setCursor(0, 1);
+  if (minutes < 10) lcd_.print("0");
+  lcd_.print(minutes);
+  lcd_.print(":");
+  if (seconds < 10) lcd_.print("0");
+  lcd_.print(seconds);
+  lcd_.print(" ");
 
 
-  lcd.setCursor(5, 1);
+  lcd_.setCursor(5, 1);
   if (isPaused) {
-    lcd.print(" PAUSED");
+    lcd_.print(" PAUSED");
   } else {
-    lcd.print("       ");
+    lcd_.print("       ");
   }
 }
 
 void Display::clear() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
+  lcd_.clear();
+  lcd_.setCursor(0, 0);
 }
 
 void Display::renderHold(const char* label, unsigned long elapsedMs, unsigned long holdMs) {
@@ -82,13 +82,14 @@ void Display::renderHold(const char* label, unsigned long elapsedMs, unsigned lo
   unsigned long clampedElapsed = elapsedMs > holdMs ? holdMs : elapsedMs;
   uint8_t filled = holdMs == 0 ? barWidth : (clampedElapsed * barWidth) / holdMs;
 
-  lcd.setCursor(0, 0);
-  lcd.print("Hold: ");
-  lcd.print(label);
-  lcd.setCursor(0, 1);
-  lcd.print("[");
+  lcd_.setCursor(0, 0);
+  lcd_.print("Hold: ");
+  lcd_.print(label);
+  lcd_.print("      ");
+  lcd_.setCursor(0, 1);
+  lcd_.print("[");
   for (uint8_t i = 0; i < barWidth; ++i) {
-    lcd.print(i <= filled ? "#" : " ");
+    lcd_.print(i < filled ? "#" : " ");
   }
-  lcd.print("]");
+  lcd_.print("]");
 }
