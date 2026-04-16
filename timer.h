@@ -32,6 +32,7 @@ public:
   bool isTimerFrozen() const;
 
   long remainingMs() const;
+  unsigned long sessionDurationMs() const;
   FormattedTime format() const;
   TimerState state() const;
   TimerSession session() const;
@@ -39,7 +40,6 @@ public:
 private:
   // Calculate the remaining time at the given moment.
   long computeRemainingMs(unsigned long now) const;
-  unsigned long sessionDurationMs() const;
   unsigned long startMs_ = 0;
   unsigned long focusMs_ = 5000;
   unsigned long breakMs_ = 3000;
