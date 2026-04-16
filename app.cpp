@@ -65,11 +65,16 @@ void App::update() {
 
     if (holdAction_ != HoldAction::NONE) {
       const unsigned long elapsed = holdConfirmed_ ? button_timing::executeHoldMs : (now - holdStartedAt_);
-      const char* holdLabel = holdAction_ == HoldAction::BACK_TO_MENU ? "menu" : "skip";
-      display_.renderHold(holdLabel, elapsed, button_timing::executeHoldMs);
+      const char* holdLabel = holdAction_ == HoldAction::BACK_TO_MENU ? "Hold for menu" : "Hold to skip";
+      display_.renderHold(holdLabel, elapsed, button_timing::executeHoldMs, holdConfirmed_);
     } else {
       const auto t = timer_.format();
-      display_.renderTimer(t.minutes, t.seconds, timer_.session() == TimerSession::FOCUS, timer_.state() == TimerState::PAUSED);
+      display_.renderTimer(t.minutes,
+                           t.seconds,
+                           timer_.session() == TimerSession::FOCUS,
+                           timer_.state() == TimerState::PAUSED,
+                           timer_.remainingMs(),
+                           timer_.sessionDurationMs());
     }
   } else {
     display_.renderConfig(selectedIndex_);
@@ -80,12 +85,10 @@ void App::handleMenuSelect(unsigned long now) {
   if (selectBtn_.wasPressed(now)) {
     if (screen_ == Screen::MENU) {
       if (selectedIndex_ == menu_items::start) {
-        display_.clear();
         timer_.begin(now);
         screen_ = Screen::TIMER;
         Serial.println("Starting timer...");
       } else if (selectedIndex_ == menu_items::config) {
-        display_.clear();
         selectedIndex_ = 0;
         screen_ = Screen::CONFIG;
         Serial.println("Rendering config...");
@@ -99,7 +102,6 @@ void App::handleMenuSelect(unsigned long now) {
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
       }
 
-      display_.clear();
       screen_ = Screen::MENU;
       selectedIndex_ = menu_items::config;
     }
@@ -124,12 +126,10 @@ void App::resetHoldActionState() {
 void App::cancelHoldAction(unsigned long now) {
   timer_.endTimerFreeze(now, true);
   resetHoldActionState();
-  display_.clear();
 }
 
 void App::executeHoldAction(unsigned long now) {
   if (holdAction_ == HoldAction::BACK_TO_MENU) {
-    display_.clear();
     screen_ = Screen::MENU;
     selectedIndex_ = 0;
     timer_.endTimerFreeze(now);
