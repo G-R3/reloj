@@ -1,95 +1,261 @@
 #include "display.h"
 #include "Arduino.h"
 
+namespace {
+constexpr uint8_t kLcdColumns = 16;
+constexpr uint8_t kProgressPixelsPerCell = 5;
+constexpr uint8_t kTimerBarWidth = 15;
+constexpr uint8_t kHoldBarWidth = 14;
+constexpr uint8_t kRowBufferSize = kLcdColumns + 1;
+
+enum CustomChar : uint8_t {
+  BAR_1 = 0,
+  BAR_2,
+  BAR_3,
+  BAR_4,
+  BAR_5,
+  FOCUS_ICON,
+  BREAK_ICON,
+  CHECK_ICON
+};
+
+uint8_t bar1[8] = {
+  0b00000,
+  0b10000,
+  0b10000,
+  0b10000,
+  0b10000,
+  0b10000,
+  0b10000,
+  0b00000,
+};
+
+uint8_t bar2[8] = {
+  0b00000,
+  0b11000,
+  0b11000,
+  0b11000,
+  0b11000,
+  0b11000,
+  0b11000,
+  0b00000,
+};
+
+uint8_t bar3[8] = {
+  0b00000,
+  0b11100,
+  0b11100,
+  0b11100,
+  0b11100,
+  0b11100,
+  0b11100,
+  0b00000,
+};
+
+uint8_t bar4[8] = {
+  0b00000,
+  0b11110,
+  0b11110,
+  0b11110,
+  0b11110,
+  0b11110,
+  0b11110,
+  0b00000,
+};
+
+uint8_t bar5[8] = {
+  0b00000,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b00000,
+};
+
+uint8_t focusIcon[8] = {
+  0b00100,
+  0b01110,
+  0b10101,
+  0b00100,
+  0b10101,
+  0b01110,
+  0b00100,
+  0b00000,
+};
+
+uint8_t breakIcon[8] = {
+  0b00110,
+  0b01100,
+  0b11000,
+  0b11000,
+  0b11000,
+  0b01100,
+  0b00110,
+  0b00000,
+};
+
+uint8_t checkIcon[8] = {
+  0b00000,
+  0b00001,
+  0b00010,
+  0b10100,
+  0b01000,
+  0b00000,
+  0b00000,
+  0b00000,
+};
+
+void fillRow(char row[kRowBufferSize]) {
+  for (uint8_t i = 0; i < kLcdColumns; ++i) {
+    row[i] = ' ';
+  }
+  row[kLcdColumns] = '\0';
+}
+
+void copyText(char row[kRowBufferSize], uint8_t startCol, const char* text) {
+  uint8_t col = startCol;
+  while (col < kLcdColumns && *text != '\0') {
+    row[col++] = *text++;
+  }
+}
+
+void writeTwoDigits(char row[kRowBufferSize], uint8_t startCol, int value) {
+  if (startCol + 1 >= kLcdColumns) return;
+
+  int clamped = value;
+  if (clamped < 0) clamped = 0;
+  if (clamped > 99) clamped = 99;
+
+  row[startCol] = static_cast<char>('0' + (clamped / 10));
+  row[startCol + 1] = static_cast<char>('0' + (clamped % 10));
+}
+
+void writeTime(char row[kRowBufferSize], uint8_t startCol, int minutes, int seconds) {
+  if (startCol + 4 >= kLcdColumns) return;
+
+  writeTwoDigits(row, startCol, minutes);
+  row[startCol + 2] = ':';
+  writeTwoDigits(row, startCol + 3, seconds);
+}
+}
+
 Display::Display(LiquidCrystal& dp)
   : lcd_(dp) {}
 
 void Display::begin() {
   lcd_.begin(16, 2);
   lcd_.clear();
+  loadCustomChars();
   lcd_.setCursor(0, 0);
+}
+
+void Display::loadCustomChars() {
+  lcd_.createChar(BAR_1, bar1);
+  lcd_.createChar(BAR_2, bar2);
+  lcd_.createChar(BAR_3, bar3);
+  lcd_.createChar(BAR_4, bar4);
+  lcd_.createChar(BAR_5, bar5);
+  lcd_.createChar(FOCUS_ICON, focusIcon);
+  lcd_.createChar(BREAK_ICON, breakIcon);
+  lcd_.createChar(CHECK_ICON, checkIcon);
+}
+
+void Display::writePaddedRow(uint8_t row, const char* text) {
+  lcd_.setCursor(0, row);
+
+  uint8_t col = 0;
+  while (col < kLcdColumns && text[col] != '\0') {
+    lcd_.write(text[col]);
+    ++col;
+  }
+
+  while (col < kLcdColumns) {
+    lcd_.write(' ');
+    ++col;
+  }
+}
+
+void Display::writeSmoothBar(uint8_t row, uint8_t col, uint8_t width, unsigned long elapsedMs, unsigned long totalMs) {
+  const unsigned long totalPixels = static_cast<unsigned long>(width) * kProgressPixelsPerCell;
+  const unsigned long clampedElapsed = totalMs == 0 ? totalMs : (elapsedMs > totalMs ? totalMs : elapsedMs);
+  const unsigned long filledPixels = totalMs == 0 ? totalPixels : (clampedElapsed * totalPixels) / totalMs;
+
+  lcd_.setCursor(col, row);
+
+  for (uint8_t i = 0; i < width; ++i) {
+    const unsigned long cellStartPixel = static_cast<unsigned long>(i) * kProgressPixelsPerCell;
+
+    uint8_t pixelsInCell = 0;
+    if (filledPixels > cellStartPixel) {
+      const unsigned long pixelsRemaining = filledPixels - cellStartPixel;
+      pixelsInCell = pixelsRemaining >= kProgressPixelsPerCell ? kProgressPixelsPerCell : static_cast<uint8_t>(pixelsRemaining);
+    }
+
+    if (pixelsInCell == 0) {
+      lcd_.write(' ');
+    } else {
+      lcd_.write(static_cast<uint8_t>(pixelsInCell - 1));
+    }
+  }
 }
 
 void Display::renderMenu(int selectedIndex) {
-  lcd_.setCursor(0, 0);
-  if (selectedIndex == 0) {
-    lcd_.print(">");
-  } else {
-    lcd_.print(" ");
-  }
-  lcd_.print("Start");
-
-  lcd_.setCursor(0, 1);
-  if (selectedIndex == 1) {
-    lcd_.print(">");
-  } else {
-    lcd_.print(" ");
-  }
-  lcd_.print("Config");
+  writePaddedRow(0, selectedIndex == 0 ? "> Start timer" : "  Start timer");
+  writePaddedRow(1, selectedIndex == 1 ? "> Set presets" : "  Set presets");
 }
 
 void Display::renderConfig(int selectedIndex) {
-  lcd_.setCursor(0, 0);
-  if (selectedIndex == 0) {
-    lcd_.print(">");
-  } else {
-    lcd_.print(" ");
-  }
-  lcd_.print("5/3");
-
-  lcd_.setCursor(0, 1);
-  if (selectedIndex == 1) {
-    lcd_.print(">");
-  } else {
-    lcd_.print(" ");
-  }
-  lcd_.print("10/5");
+  writePaddedRow(0, selectedIndex == 0 ? "> Quick     5/3 " : "  Quick     5/3 ");
+  writePaddedRow(1, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
 }
 
-void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPaused) {
-  lcd_.setCursor(0, 0);
-
-  if (isFocused) {
-    lcd_.print("Focus");
-  } else {
-    lcd_.print("Break");
+void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPaused, long remainingMs, unsigned long sessionDurationMs) {
+  unsigned long clampedRemainingMs = 0;
+  if (remainingMs > 0) {
+    clampedRemainingMs = static_cast<unsigned long>(remainingMs);
+    if (clampedRemainingMs > sessionDurationMs) {
+      clampedRemainingMs = sessionDurationMs;
+    }
   }
 
-  lcd_.setCursor(0, 1);
-  if (minutes < 10) lcd_.print("0");
-  lcd_.print(minutes);
-  lcd_.print(":");
-  if (seconds < 10) lcd_.print("0");
-  lcd_.print(seconds);
-  lcd_.print(" ");
+  const unsigned long elapsedMs = sessionDurationMs > clampedRemainingMs ? sessionDurationMs - clampedRemainingMs : 0;
 
+  lcd_.setCursor(0, 0);
+  lcd_.write(static_cast<uint8_t>(isFocused ? FOCUS_ICON : BREAK_ICON));
+  writeSmoothBar(0, 1, kTimerBarWidth, elapsedMs, sessionDurationMs);
 
-  lcd_.setCursor(5, 1);
+  char row[kRowBufferSize];
+  fillRow(row);
+  copyText(row, 0, isFocused ? "Focus" : "Break");
+
   if (isPaused) {
-    lcd_.print(" PAUSED");
+    copyText(row, 8, "||");
+  }
+
+  writeTime(row, 11, minutes, seconds);
+  writePaddedRow(1, row);
+}
+
+void Display::renderHold(const char* label, unsigned long elapsedMs, unsigned long holdMs, bool isConfirmed) {
+  if (isConfirmed) {
+    char row[kRowBufferSize];
+    fillRow(row);
+    copyText(row, 1, "Confirmed");
+
+    lcd_.setCursor(0, 0);
+    lcd_.write(static_cast<uint8_t>(CHECK_ICON));
+    for (uint8_t i = 1; i < kLcdColumns; ++i) {
+      lcd_.write(row[i]);
+    }
   } else {
-    lcd_.print("       ");
+    writePaddedRow(0, label);
   }
-}
 
-void Display::clear() {
-  lcd_.clear();
-  lcd_.setCursor(0, 0);
-}
-
-void Display::renderHold(const char* label, unsigned long elapsedMs, unsigned long holdMs) {
-  constexpr uint8_t barWidth = 14; // defines the space between the brackets [               ]
-  unsigned long clampedElapsed = elapsedMs > holdMs ? holdMs : elapsedMs;
-  uint8_t filled = holdMs == 0 ? barWidth : (clampedElapsed * barWidth) / holdMs;
-
-  lcd_.setCursor(0, 0);
-  lcd_.print("Hold: ");
-  lcd_.print(label);
-  lcd_.print("      ");
   lcd_.setCursor(0, 1);
-  lcd_.print("[");
-  for (uint8_t i = 0; i < barWidth; ++i) {
-    lcd_.print(i < filled ? "#" : " ");
-  }
-  lcd_.print("]");
+  lcd_.write('[');
+  writeSmoothBar(1, 1, kHoldBarWidth, elapsedMs, holdMs);
+  lcd_.setCursor(kLcdColumns - 1, 1);
+  lcd_.write(']');
 }
