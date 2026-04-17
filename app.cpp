@@ -1,6 +1,6 @@
 #include "app.h"
 
-namespace button_pins {
+namespace pins {
 constexpr uint8_t pauseBtnPin = 6;
 constexpr uint8_t resetBtnPin = 7;
 constexpr uint8_t menuNavBtnPin = 8;
@@ -33,10 +33,10 @@ constexpr unsigned long holdFlashMs = 75;
 
 App::App(LiquidCrystal& dp)
   : display_(dp),
-    pauseBtn_(button_pins::pauseBtnPin),
-    resetBtn_(button_pins::resetBtnPin),
-    menuNavBtn_(button_pins::menuNavBtnPin),
-    selectBtn_(button_pins::selectBtnPin) {}
+    pauseBtn_(pins::pauseBtnPin),
+    resetBtn_(pins::resetBtnPin),
+    menuNavBtn_(pins::menuNavBtnPin),
+    selectBtn_(pins::selectBtnPin) {}
 
 void App::begin(unsigned long now) {
   (void)now;
