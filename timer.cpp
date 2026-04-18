@@ -152,3 +152,7 @@ void Timer::skip(unsigned long now) {
 bool Timer::isTimerFrozen() const {
   return timerFrozen_;
 }
+
+bool Timer::hasSessionEnded() const {
+  return modeJustEnded_;
+}

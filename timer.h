@@ -18,6 +18,7 @@ public:
   void reset(unsigned long now);
   void setDurations(unsigned long focusMs, unsigned long breakMs);
   void skip(unsigned long now);
+  bool hasSessionEnded() const;
 
   // Temporarily freeze countdown updates during a hold action.
   // This is separate from togglePause() because a hold is not a real user pause:
