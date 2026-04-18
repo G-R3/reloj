@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "app.h"
 
 namespace pins {
@@ -5,18 +6,20 @@ constexpr uint8_t pauseBtnPin = 6;
 constexpr uint8_t resetBtnPin = 7;
 constexpr uint8_t menuNavBtnPin = 8;
 constexpr uint8_t selectBtnPin = 9;
+constexpr uint8_t piezoPin = 10;
 }
 
 namespace menu_items {
 constexpr int start = 0;
 constexpr int config = 1;
-constexpr int count = 2;
+constexpr int count = 3;
 }
 
 namespace config_items {
 constexpr int shortPreset = 0;
 constexpr int longPreset = 1;
-constexpr int count = 2;
+constexpr int buzzer = 2;
+constexpr int count = 3;
 }
 
 namespace preset_durations {
@@ -24,6 +27,11 @@ constexpr unsigned long shortFocusMs = 5000UL;
 constexpr unsigned long shortBreakMs = 3000UL;
 constexpr unsigned long longFocusMs = 10000UL;
 constexpr unsigned long longBreakMs = 5000UL;
+}
+
+namespace buzzer_config {
+constexpr unsigned int toneHz = 2200;
+constexpr unsigned long toneDurationMs = 180;
 }
 
 namespace button_timing {
@@ -44,6 +52,8 @@ void App::begin(unsigned long now) {
   resetBtn_.begin();
   menuNavBtn_.begin();
   selectBtn_.begin();
+
+  pindMode(pins::piezoPin, OUTPUT);
 
   display_.begin();
 }
@@ -79,6 +89,12 @@ void App::update() {
   } else {
     display_.renderConfig(selectedIndex_);
   }
+}
+
+void App::playBuzzer() {
+  if (!timer_.hasSessionEnded()) return;
+
+  tone(pins::piezoPin, buzzer_config::toneHz, buzzer_config::toneDurationMs);
 }
 
 void App::handleMenuSelect(unsigned long now) {

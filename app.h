@@ -27,12 +27,14 @@ private:
   void handleMenuSelect(unsigned long now);
   void handleTimerInput(unsigned long now);
   void handleMenuNav(unsigned long now);
-
+  
   void handleHoldAction(unsigned long now);
   void startHoldAction(HoldAction action, unsigned long now);
   void resetHoldActionState();
   void cancelHoldAction(unsigned long now);
   void executeHoldAction(unsigned long now);
+
+  void playBuzzer();
 
   Button pauseBtn_;
   Button resetBtn_;
