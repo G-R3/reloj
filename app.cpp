@@ -135,7 +135,7 @@ void App::handleMenuSelect(unsigned long now) {
         timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
       } else if (selectedIndex_ == config_items::buzzer) {
-        buzzerEnabled_ = false;
+        buzzerEnabled_ = !buzzerEnabled_;
         Serial.println("Buzzer toggled. Returning to menu...");
       }
 
