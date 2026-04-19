@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #include "Arduino.h"
 #include <EEPROM.h>
 #include "app.h"
@@ -13,7 +14,7 @@ constexpr uint8_t piezoPin = 10;
 namespace menu_items {
 constexpr int start = 0;
 constexpr int config = 1;
-constexpr int count = 3;
+constexpr int count = 2;
 }
 
 namespace config_items {
@@ -97,12 +98,12 @@ void App::update() {
                            timer_.sessionDurationMs());
     }
   } else {
-    display_.renderConfig(selectedIndex_);
+    display_.renderConfig(selectedIndex_, buzzerEnabled_);
   }
 }
 
 void App::playBuzzer() {
-  if (!timer_.hasSessionEnded()) return;
+  if (!timer_.hasSessionEnded() || !buzzerEnabled_) return;
 
   tone(pins::piezoPin, buzzer_config::toneHz, buzzer_config::toneDurationMs);
   // for (int i = 0; i < 3; i++) {
@@ -133,6 +134,9 @@ void App::handleMenuSelect(unsigned long now) {
       } else if (selectedIndex_ == config_items::longPreset) {
         timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
+      } else if (selectedIndex_ == config_items::buzzer) {
+        buzzerEnabled_ = false;
+        Serial.println("Buzzer toggled. Returning to menu...");
       }
 
       screen_ = Screen::MENU;
@@ -241,5 +245,6 @@ void App::handleMenuNav(unsigned long now) {
     Serial.println("Navigating menu...");
     const int itemCount = screen_ == Screen::MENU ? menu_items::count : config_items::count;
     selectedIndex_ = (selectedIndex_ + 1) % itemCount;
+    Serial.print(selectedIndex_);
   }
 }

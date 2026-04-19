@@ -35,6 +35,7 @@ private:
   void executeHoldAction(unsigned long now);
 
   void playBuzzer();
+  bool buzzerEnabled_ = true;
 
   Button pauseBtn_;
   Button resetBtn_;
