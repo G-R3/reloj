@@ -33,6 +33,8 @@ public:
   bool isTimerFrozen() const;
 
   long remainingMs() const;
+  // returns full length of the current session so the display can figure out how
+  // much of the progress bar should be filled in the UI.
   unsigned long sessionDurationMs() const;
   FormattedTime format() const;
   TimerState state() const;
