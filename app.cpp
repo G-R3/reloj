@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include <EEPROM.h>
 #include "app.h"
 
 namespace pins {
@@ -39,6 +40,12 @@ constexpr unsigned long executeHoldMs = 800;
 constexpr unsigned long holdFlashMs = 75;
 }
 
+struct Config {
+  bool buzzerEnabled;
+};
+
+Config defaultConfig = { true };
+
 App::App(LiquidCrystal& dp)
   : display_(dp),
     pauseBtn_(pins::pauseBtnPin),
@@ -53,7 +60,9 @@ void App::begin(unsigned long now) {
   menuNavBtn_.begin();
   selectBtn_.begin();
 
-  pindMode(pins::piezoPin, OUTPUT);
+  pinMode(pins::piezoPin, OUTPUT);
+
+  // EEPROM.get(0, )
 
   display_.begin();
 }
@@ -78,6 +87,7 @@ void App::update() {
       const char* holdLabel = holdAction_ == HoldAction::BACK_TO_MENU ? "Hold for menu" : "Hold to skip";
       display_.renderHold(holdLabel, elapsed, button_timing::executeHoldMs, holdConfirmed_);
     } else {
+      playBuzzer();
       const auto t = timer_.format();
       display_.renderTimer(t.minutes,
                            t.seconds,
@@ -95,6 +105,13 @@ void App::playBuzzer() {
   if (!timer_.hasSessionEnded()) return;
 
   tone(pins::piezoPin, buzzer_config::toneHz, buzzer_config::toneDurationMs);
+  // for (int i = 0; i < 3; i++) {
+  //   tone(pins::piezoPin, 1000);
+  //   delay(100);
+
+  //   noTone(pins::piezoPin);
+  //   delay(100);
+  // }
 }
 
 void App::handleMenuSelect(unsigned long now) {
