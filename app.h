@@ -14,6 +14,11 @@ enum class HoldAction {
   SKIP_TIMER_SESSION
 };
 
+struct Config {
+  uint8_t magic;
+  bool buzzerEnabled;
+};
+
 /**
   Coordinates button input, timer state, and screen updates.
 */
@@ -35,7 +40,11 @@ private:
   void executeHoldAction(unsigned long now);
 
   void playBuzzer();
-  bool buzzerEnabled_ = true;
+
+  void loadConfig();
+  void saveConfig();
+
+  Config config_;
 
   Button pauseBtn_;
   Button resetBtn_;
