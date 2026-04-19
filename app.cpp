@@ -41,11 +41,10 @@ constexpr unsigned long executeHoldMs = 800;
 constexpr unsigned long holdFlashMs = 75;
 }
 
-struct Config {
-  bool buzzerEnabled;
-};
-
-Config defaultConfig = { true };
+namespace storage_config {
+constexpr uint8_t magic = 0x42;
+constexpr int configAddr = 0;
+}
 
 App::App(LiquidCrystal& dp)
   : display_(dp),
@@ -61,11 +60,29 @@ void App::begin(unsigned long now) {
   menuNavBtn_.begin();
   selectBtn_.begin();
 
+  loadConfig();
+
   pinMode(pins::piezoPin, OUTPUT);
 
-  // EEPROM.get(0, )
-
   display_.begin();
+}
+
+void App::loadConfig() {
+  EEPROM.get(storage_config::configAddr, config_);
+
+  // NOTE: if new fields are added to the Config, initialize them and trigger a save (click whatever buttons we need to),
+  // or add versioning check here in addition to the magic check. Otherwise old EEPROM data may pass the magic check
+  // while leaving new fields uninitialized.
+  if (config_.magic != storage_config::magic) {
+    config_.buzzerEnabled = true;
+    config_.magic = storage_config::magic;
+
+    EEPROM.put(storage_config::configAddr, config_);
+  }
+}
+
+void App::saveConfig() {
+  EEPROM.put(storage_config::configAddr, config_);
 }
 
 void App::update() {
@@ -98,12 +115,12 @@ void App::update() {
                            timer_.sessionDurationMs());
     }
   } else {
-    display_.renderConfig(selectedIndex_, buzzerEnabled_);
+    display_.renderConfig(selectedIndex_, config_.buzzerEnabled);
   }
 }
 
 void App::playBuzzer() {
-  if (!timer_.hasSessionEnded() || !buzzerEnabled_) return;
+  if (!timer_.hasSessionEnded() || !config_.buzzerEnabled) return;
 
   tone(pins::piezoPin, buzzer_config::toneHz, buzzer_config::toneDurationMs);
   // for (int i = 0; i < 3; i++) {
@@ -135,7 +152,8 @@ void App::handleMenuSelect(unsigned long now) {
         timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
       } else if (selectedIndex_ == config_items::buzzer) {
-        buzzerEnabled_ = !buzzerEnabled_;
+        config_.buzzerEnabled = !config_.buzzerEnabled;
+        saveConfig();
         Serial.println("Buzzer toggled. Returning to menu...");
       }
 
@@ -245,6 +263,5 @@ void App::handleMenuNav(unsigned long now) {
     Serial.println("Navigating menu...");
     const int itemCount = screen_ == Screen::MENU ? menu_items::count : config_items::count;
     selectedIndex_ = (selectedIndex_ + 1) % itemCount;
-    Serial.print(selectedIndex_);
   }
 }
