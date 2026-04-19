@@ -107,6 +107,8 @@ uint8_t checkIcon[8] = {
   0b00000,
 };
 
+// Start with a blank 16-character row so each screen can build its text in memory
+// before writing a full row overwrite to the LCD in one pass.
 void fillRow(char row[kRowBufferSize]) {
   for (uint8_t i = 0; i < kLcdColumns; ++i) {
     row[i] = ' ';
@@ -114,6 +116,7 @@ void fillRow(char row[kRowBufferSize]) {
   row[kLcdColumns] = '\0';
 }
 
+// Copy text into the row buffer without spilling past the fixed 16-column width of the diplay.
 void copyText(char row[kRowBufferSize], uint8_t startCol, const char* text) {
   uint8_t col = startCol;
   while (col < kLcdColumns && *text != '\0') {
@@ -121,6 +124,8 @@ void copyText(char row[kRowBufferSize], uint8_t startCol, const char* text) {
   }
 }
 
+// Write a clamped, zero-padded 2-digit number directly into a row buffer. Keep it 
+// in the range of 00 - 99
 void writeTwoDigits(char row[kRowBufferSize], uint8_t startCol, int value) {
   if (startCol + 1 >= kLcdColumns) return;
 
@@ -132,6 +137,7 @@ void writeTwoDigits(char row[kRowBufferSize], uint8_t startCol, int value) {
   row[startCol + 1] = static_cast<char>('0' + (clamped % 10));
 }
 
+// Format a compact MM:SS timestamp at a fixed column position inside the row buffer.
 void writeTime(char row[kRowBufferSize], uint8_t startCol, int minutes, int seconds) {
   if (startCol + 4 >= kLcdColumns) return;
 
@@ -151,6 +157,8 @@ void Display::begin() {
   lcd_.setCursor(0, 0);
 }
 
+// LiquidCrystal exposes only 8 CGRAM slots, so we spend them on the visuals that
+// add the most value on our 16x2 screen: smooth progress, mode icons, and confirmation.
 void Display::loadCustomChars() {
   lcd_.createChar(BAR_1, bar1);
   lcd_.createChar(BAR_2, bar2);
@@ -162,6 +170,8 @@ void Display::loadCustomChars() {
   lcd_.createChar(CHECK_ICON, checkIcon);
 }
 
+// Always write a full row so content from the previous screen cannot remain visible
+// when the new text is shorter and we are intentionally avoiding lcd.clear().
 void Display::writePaddedRow(uint8_t row, const char* text) {
   lcd_.setCursor(0, row);
 
@@ -177,6 +187,8 @@ void Display::writePaddedRow(uint8_t row, const char* text) {
   }
 }
 
+// Convert progress into 5-pixel cells so partially filled custom glyphs can produce
+// a smoother bar than a simple on/off character fill.
 void Display::writeSmoothBar(uint8_t row, uint8_t col, uint8_t width, unsigned long elapsedMs, unsigned long totalMs) {
   const unsigned long totalPixels = static_cast<unsigned long>(width) * kProgressPixelsPerCell;
   const unsigned long clampedElapsed = totalMs == 0 ? totalMs : (elapsedMs > totalMs ? totalMs : elapsedMs);
@@ -213,7 +225,7 @@ void Display::renderConfig(int selectedIndex, bool buzzerEnabled) {
   } else {
     writePaddedRow(0, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
 
-    char row[17];
+    char row[kRowBufferSize];
     fillRow(row);
     copyText(row, 0, selectedIndex == 2 ? "> " : " ");
     copyText(row, 2, "Buzzer");
@@ -223,6 +235,8 @@ void Display::renderConfig(int selectedIndex, bool buzzerEnabled) {
   }
 }
 
+// the timer screen keeps the top row purely visual and reserves the second row for
+// the mode label, paused marker, and right-aligned timer.
 void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPaused, long remainingMs, unsigned long sessionDurationMs) {
   unsigned long clampedRemainingMs = 0;
   if (remainingMs > 0) {
@@ -250,6 +264,8 @@ void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPause
   writePaddedRow(1, row);
 }
 
+// The hold overlay reuses the same progress language as the timer, then briefly swaps
+// the label for a confirmation state once the hold has completed.
 void Display::renderHold(const char* label, unsigned long elapsedMs, unsigned long holdMs, bool isConfirmed) {
   if (isConfirmed) {
     char row[kRowBufferSize];
