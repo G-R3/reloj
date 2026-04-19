@@ -206,9 +206,21 @@ void Display::renderMenu(int selectedIndex) {
   writePaddedRow(1, selectedIndex == 1 ? "> Set presets" : "  Set presets");
 }
 
-void Display::renderConfig(int selectedIndex) {
-  writePaddedRow(0, selectedIndex == 0 ? "> Quick     5/3 " : "  Quick     5/3 ");
-  writePaddedRow(1, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
+void Display::renderConfig(int selectedIndex, bool buzzerEnabled) {
+  if(selectedIndex < 1) {
+    writePaddedRow(0, selectedIndex == 0 ? "> Quick     5/3 " : "  Quick     5/3 ");
+    writePaddedRow(1, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
+  } else {
+    writePaddedRow(0, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
+
+    char row[17];
+    fillRow(row);
+    copyText(row, 0, selectedIndex == 2 ? "> " : " ");
+    copyText(row, 2, "Buzzer");
+    copyText(row, 12, buzzerEnabled ? "ON" : "OFF");
+    writePaddedRow(1, row);
+    
+  }
 }
 
 void Display::renderTimer(int minutes, int seconds, bool isFocused, bool isPaused, long remainingMs, unsigned long sessionDurationMs) {
