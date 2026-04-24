@@ -54,7 +54,7 @@ private:
   Timer timer_;
   Display display_;
 
-  int selectedIndex_ = 0;
+  int selectedItemIndex_ = 0;
 
   Screen screen_ = Screen::MENU;
 
