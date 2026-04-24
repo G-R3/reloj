@@ -46,14 +46,14 @@ constexpr uint8_t magic = 0x42;
 constexpr int configAddr = 0;
 }
 
-App::App(LiquidCrystal& dp)
+Reloj::Reloj(LiquidCrystal& dp)
   : display_(dp),
     pauseBtn_(pins::pauseBtnPin),
     resetBtn_(pins::resetBtnPin),
     menuNavBtn_(pins::menuNavBtnPin),
     selectBtn_(pins::selectBtnPin) {}
 
-void App::begin(unsigned long now) {
+void Reloj::begin(unsigned long now) {
   (void)now;
   pauseBtn_.begin();
   resetBtn_.begin();
@@ -67,7 +67,7 @@ void App::begin(unsigned long now) {
   display_.begin();
 }
 
-void App::loadConfig() {
+void Reloj::loadConfig() {
   EEPROM.get(storage_config::configAddr, config_);
 
   // NOTE: if new fields are added to the Config, initialize them and trigger a save (click whatever buttons we need to),
@@ -81,11 +81,11 @@ void App::loadConfig() {
   }
 }
 
-void App::saveConfig() {
+void Reloj::saveConfig() {
   EEPROM.put(storage_config::configAddr, config_);
 }
 
-void App::update() {
+void Reloj::update() {
   const unsigned long now = millis();
 
   if (screen_ != Screen::TIMER) {
@@ -96,7 +96,7 @@ void App::update() {
   }
 
   if (screen_ == Screen::MENU) {
-    display_.renderMenu(selectedIndex_);
+    display_.renderMenu(selectedItemIndex_);
   } else if (screen_ == Screen::TIMER) {
     timer_.update(now);
 
@@ -115,11 +115,11 @@ void App::update() {
                            timer_.sessionDurationMs());
     }
   } else {
-    display_.renderConfig(selectedIndex_, config_.buzzerEnabled);
+    display_.renderConfig(selectedItemIndex_, config_.buzzerEnabled);
   }
 }
 
-void App::playBuzzer() {
+void Reloj::playBuzzer() {
   if (!timer_.hasSessionEnded() || !config_.buzzerEnabled) return;
 
   tone(pins::piezoPin, buzzer_config::toneHz, buzzer_config::toneDurationMs);
@@ -132,38 +132,38 @@ void App::playBuzzer() {
   // }
 }
 
-void App::handleMenuSelect(unsigned long now) {
+void Reloj::handleMenuSelect(unsigned long now) {
   if (selectBtn_.wasPressed(now)) {
     if (screen_ == Screen::MENU) {
-      if (selectedIndex_ == menu_items::start) {
+      if (selectedItemIndex_ == menu_items::start) {
         timer_.begin(now);
         screen_ = Screen::TIMER;
         Serial.println("Starting timer...");
-      } else if (selectedIndex_ == menu_items::config) {
-        selectedIndex_ = 0;
+      } else if (selectedItemIndex_ == menu_items::config) {
+        selectedItemIndex_ = 0;
         screen_ = Screen::CONFIG;
         Serial.println("Rendering config...");
       }
     } else if (screen_ == Screen::CONFIG) {
-      if (selectedIndex_ == config_items::shortPreset) {
+      if (selectedItemIndex_ == config_items::shortPreset) {
         timer_.setDurations(preset_durations::shortFocusMs, preset_durations::shortBreakMs);
         Serial.println("Selected 5 seconds focus, 3 seconds break. Returning to menu...");
-      } else if (selectedIndex_ == config_items::longPreset) {
+      } else if (selectedItemIndex_ == config_items::longPreset) {
         timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
-      } else if (selectedIndex_ == config_items::buzzer) {
+      } else if (selectedItemIndex_ == config_items::buzzer) {
         config_.buzzerEnabled = !config_.buzzerEnabled;
         saveConfig();
         Serial.println("Buzzer toggled. Returning to menu...");
       }
 
       screen_ = Screen::MENU;
-      selectedIndex_ = menu_items::config;
+      selectedItemIndex_ = menu_items::config;
     }
   }
 }
 
-void App::startHoldAction(HoldAction action, unsigned long now) {
+void Reloj::startHoldAction(HoldAction action, unsigned long now) {
   timer_.beginTimerFreeze(now);
   holdAction_ = action;
   holdStartedAt_ = now;
@@ -171,22 +171,22 @@ void App::startHoldAction(HoldAction action, unsigned long now) {
   holdConfirmedAt_ = 0;
 }
 
-void App::resetHoldActionState() {
+void Reloj::resetHoldActionState() {
   holdAction_ = HoldAction::NONE;
   holdStartedAt_ = 0;
   holdConfirmed_ = false;
   holdConfirmedAt_ = 0;
 }
 
-void App::cancelHoldAction(unsigned long now) {
+void Reloj::cancelHoldAction(unsigned long now) {
   timer_.endTimerFreeze(now, true);
   resetHoldActionState();
 }
 
-void App::executeHoldAction(unsigned long now) {
+void Reloj::executeHoldAction(unsigned long now) {
   if (holdAction_ == HoldAction::BACK_TO_MENU) {
     screen_ = Screen::MENU;
-    selectedIndex_ = 0;
+    selectedItemIndex_ = 0;
     timer_.endTimerFreeze(now);
     Serial.println("Returning to menu...");
   } else if (holdAction_ == HoldAction::SKIP_TIMER_SESSION) {
@@ -197,7 +197,7 @@ void App::executeHoldAction(unsigned long now) {
   resetHoldActionState();
 }
 
-void App::handleHoldAction(unsigned long now) {
+void Reloj::handleHoldAction(unsigned long now) {
   Button* holdButton = nullptr;
 
   if (holdAction_ == HoldAction::BACK_TO_MENU) {
@@ -235,7 +235,7 @@ void App::handleHoldAction(unsigned long now) {
   }
 }
 
-void App::handleTimerInput(unsigned long now) {
+void Reloj::handleTimerInput(unsigned long now) {
   if (holdAction_ != HoldAction::NONE) {
     handleHoldAction(now);
     return;
@@ -258,10 +258,10 @@ void App::handleTimerInput(unsigned long now) {
   }
 }
 
-void App::handleMenuNav(unsigned long now) {
+void Reloj::handleMenuNav(unsigned long now) {
   if (menuNavBtn_.wasPressed(now)) {
     Serial.println("Navigating menu...");
     const int itemCount = screen_ == Screen::MENU ? menu_items::count : config_items::count;
-    selectedIndex_ = (selectedIndex_ + 1) % itemCount;
+    selectedItemIndex_ = (selectedItemIndex_ + 1) % itemCount;
   }
 }
