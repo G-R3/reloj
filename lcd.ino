@@ -9,13 +9,13 @@ const int d6 = 3;
 const int d7 = 2;
 
 LiquidCrystal lcd(rs, enable, d4, d5, d6, d7);
-App app(lcd);
+Reloj reloj(lcd);
 
 void setup() {
   Serial.begin(9600);
-  app.begin(millis());
+  reloj.begin(millis());
 }
 
 void loop() {
-  app.update();
+  reloj.update();
 }

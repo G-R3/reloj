@@ -22,9 +22,9 @@ struct Config {
 /**
   Coordinates button input, timer state, and screen updates.
 */
-class App {
+class Reloj {
 public:
-  explicit App(LiquidCrystal& lcd);
+  explicit Reloj(LiquidCrystal& lcd);
   void begin(unsigned long now);
   void update();
 
