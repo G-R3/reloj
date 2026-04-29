@@ -74,9 +74,10 @@ void Reloj::loadConfig() {
   // NOTE: if new fields are added to the Config, initialize them and trigger a save (click whatever buttons we need to),
   // or add versioning check here in addition to the magic check. Otherwise old EEPROM data may pass the magic check
   // while leaving new fields uninitialized.
-  if (config_.magic != storage_config::magic) {
+  if (config_.magic != storage_config::magic || config_.version != storage_config::version) {
     config_.buzzerEnabled = true;
     config_.magic = storage_config::magic;
+    confign_.version = storage_config::version;
 
     EEPROM.put(storage_config::configAddr, config_);
   }
