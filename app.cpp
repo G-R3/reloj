@@ -43,6 +43,7 @@ constexpr unsigned long holdFlashMs = 75;
 
 namespace storage_config {
 constexpr uint8_t magic = 0x42;
+constexpr uint8_t version = 1;
 constexpr int configAddr = 0;
 }
 

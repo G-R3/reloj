@@ -14,8 +14,10 @@ enum class HoldAction {
   SKIP_TIMER_SESSION
 };
 
+
 struct Config {
   uint8_t magic;
+  uint8_t version;
   bool buzzerEnabled;
 };
 
