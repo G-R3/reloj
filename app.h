@@ -14,10 +14,16 @@ enum class HoldAction {
   SKIP_TIMER_SESSION
 };
 
+enum class DurationPreset : uint8_t {
+  QUICK,
+  LONG
+};
+
 struct Config {
   uint8_t magic;
   uint8_t version;
   bool buzzerEnabled;
+  DurationPreset durationPreset;
 };
 
 /**
@@ -33,12 +39,14 @@ private:
   void handleMenuSelect(unsigned long now);
   void handleTimerInput(unsigned long now);
   void handleMenuNav(unsigned long now);
-  
+
   void handleHoldAction(unsigned long now);
   void startHoldAction(HoldAction action, unsigned long now);
   void resetHoldActionState();
   void cancelHoldAction(unsigned long now);
   void executeHoldAction(unsigned long now);
+
+  void applyConfigTimerPreset();
 
   void playBuzzer();
 
