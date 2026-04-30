@@ -43,7 +43,7 @@ constexpr unsigned long holdFlashMs = 75;
 
 namespace storage_config {
 constexpr uint8_t magic = 0x42;
-constexpr uint8_t version = 1;
+constexpr uint8_t version = 2;  // must bump this when new config item is added
 constexpr int configAddr = 0;
 }
 
@@ -62,6 +62,7 @@ void Reloj::begin(unsigned long now) {
   selectBtn_.begin();
 
   loadConfig();
+  applyConfigTimerPreset();
 
   pinMode(pins::piezoPin, OUTPUT);
 
@@ -76,9 +77,9 @@ void Reloj::loadConfig() {
   // while leaving new fields uninitialized.
   if (config_.magic != storage_config::magic || config_.version != storage_config::version) {
     config_.buzzerEnabled = true;
+    config_.durationPreset = DurationPreset::LONG;
     config_.magic = storage_config::magic;
-    confign_.version = storage_config::version;
-
+    config_.version = storage_config::version;
     EEPROM.put(storage_config::configAddr, config_);
   }
 }
@@ -121,6 +122,14 @@ void Reloj::update() {
   }
 }
 
+void Reloj::applyConfigTimerPreset() {
+  if (config_.durationPreset == DurationPreset::LONG) {
+    timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
+  } else {
+    timer_.setDurations(preset_durations::shortFocusMs, preset_durations::shortBreakMs);
+  }
+}
+
 void Reloj::playBuzzer() {
   if (!timer_.hasSessionEnded() || !config_.buzzerEnabled) return;
 
@@ -148,17 +157,19 @@ void Reloj::handleMenuSelect(unsigned long now) {
       }
     } else if (screen_ == Screen::CONFIG) {
       if (selectedItemIndex_ == config_items::shortPreset) {
-        timer_.setDurations(preset_durations::shortFocusMs, preset_durations::shortBreakMs);
+        config_.durationPreset = DurationPreset::QUICK;
+        applyConfigTimerPreset();
         Serial.println("Selected 5 seconds focus, 3 seconds break. Returning to menu...");
       } else if (selectedItemIndex_ == config_items::longPreset) {
-        timer_.setDurations(preset_durations::longFocusMs, preset_durations::longBreakMs);
+        config_.durationPreset = DurationPreset::LONG;
+        applyConfigTimerPreset();
         Serial.println("Selected 10 seconds focus, 5 seconds break. Returning to menu...");
       } else if (selectedItemIndex_ == config_items::buzzer) {
         config_.buzzerEnabled = !config_.buzzerEnabled;
-        saveConfig();
         Serial.println("Buzzer toggled. Returning to menu...");
       }
 
+      saveConfig();
       screen_ = Screen::MENU;
       selectedItemIndex_ = menu_items::config;
     }
