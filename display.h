@@ -3,7 +3,7 @@
 #include <LiquidCrystal.h>
 
 // This is the only preset data the LCD needs for now. Keeping it separate helps Display
-// stay focused on rendering instead of knowing about/depending on App's internal config type/constants.
+// stay focused on rendering instead of knowing about/depending on App's internal config type/constants. tldr no need to pass the entire app config_ to renderMenu :)
 struct PresetDurations {
   unsigned long focusMs;
   unsigned long breakMs;
