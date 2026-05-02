@@ -16,6 +16,8 @@ void Timer::begin(unsigned long now) {
   timerFrozen_ = false;
   freezeCompensatesElapsed_ = false;
   timerFrozenAt_ = 0;
+
+  sessionEnded_ = false;
 }
 
 void Timer::update(unsigned long now) {
@@ -37,6 +39,7 @@ void Timer::update(unsigned long now) {
       remainingMs_ = 0;
       modeEndedAt_ = now;
       modeJustEnded_ = true;
+      sessionEnded_ = true;
     }
   }
 }
@@ -92,6 +95,7 @@ void Timer::reset(unsigned long now) {
   // we want to be able to reset during the transitioning phase (rendering 0:00).
   modeEndedAt_ = 0;
   modeJustEnded_ = false;
+  sessionEnded_ = false;
 }
 
 void Timer::setDurations(unsigned long focusMs, unsigned long breakMs) {
@@ -143,6 +147,7 @@ void Timer::skip(unsigned long now) {
   remainingMs_ = computeRemainingMs(now);
   modeJustEnded_ = false;
   modeEndedAt_ = 0;
+  sessionEnded_ = false;
 
   if (state_ == TimerState::PAUSED) {
     pausedAt_ = now;
@@ -153,6 +158,11 @@ bool Timer::isTimerFrozen() const {
   return timerFrozen_;
 }
 
-bool Timer::hasSessionEnded() const {
-  return modeJustEnded_;
+bool Timer::consumeSessionEnded() {
+  if (sessionEnded_) {
+    sessionEnded_ = false;
+    return true;
+  }
+
+  return false;
 }
