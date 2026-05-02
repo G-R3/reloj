@@ -1,5 +1,7 @@
 #include "display.h"
 #include "Arduino.h"
+#include <stdio.h>
+#include <string.h>
 
 namespace {
 constexpr uint8_t kLcdColumns = 16;
@@ -145,6 +147,66 @@ void writeTime(char row[kRowBufferSize], uint8_t startCol, int minutes, int seco
   row[startCol + 2] = ':';
   writeTwoDigits(row, startCol + 3, seconds);
 }
+
+// Format one duration as a compact value with units
+// this is nice if we ever want switch the preset durations without needing to update any
+// hardcoded labels :). For example when I eventually switch from using 5000ms for 5s to 600000ms for 10m
+void formatDuration(char* buffer, size_t bufferSize, unsigned long durationMs) {
+  if (durationMs % 60000UL == 0) {
+    snprintf(buffer, bufferSize, "%lum", durationMs / 60000UL);
+  } else if (durationMs % 1000UL == 0) {
+    snprintf(buffer, bufferSize, "%lus", durationMs / 1000UL);
+  } else {
+    snprintf(buffer, bufferSize, "%lums", durationMs);
+  }
+}
+
+// Turn a focus/break pair into a short label like 25m/5m or 5s/3s.
+void formatPresetDurations(char* buffer, size_t bufferSize, PresetDurations preset) {
+  char focus[8];
+  char rest[8];
+
+  formatDuration(focus, sizeof(focus), preset.focusMs);
+  formatDuration(rest, sizeof(rest), preset.breakMs);
+  snprintf(buffer, bufferSize, "%s/%s", focus, rest);
+}
+
+// Build one preset row with a cursor for navigation and a trailing marker for the
+// preset that is currently active in the saved config.
+void buildPresetRow(char row[kRowBufferSize], bool isSelected, const char* label, PresetDurations preset, bool isActive) {
+  fillRow(row);
+  row[0] = isSelected ? '>' : ' ';
+  row[1] = ' ';
+
+  copyText(row, 2, label);
+  row[2 + strlen(label)] = ' ';
+
+  char durations[12];
+  formatPresetDurations(durations, sizeof(durations), preset);
+  copyText(row, static_cast<uint8_t>(3 + strlen(label)), durations);
+
+  if (isActive) {
+    row[kLcdColumns - 1] = '*';
+  }
+}
+
+// Show buzzer state as two explicit choices and bracket the active one so the saved
+// setting is obvious at a glance.
+void buildBuzzerRow(char row[kRowBufferSize], bool isSelected, bool buzzerEnabled) {
+  fillRow(row);
+  row[0] = isSelected ? '>' : ' ';
+  row[1] = ' ';
+
+  copyText(row, 2, "Buzz");
+
+  if (buzzerEnabled) {
+    copyText(row, 7, "[ON]");
+    copyText(row, 12, "OFF");
+  } else {
+    copyText(row, 7, "ON");
+    copyText(row, 10, "[OFF]");
+  }
+}
 }
 
 Display::Display(LiquidCrystal& dp)
@@ -218,20 +280,28 @@ void Display::renderMenu(int selectedIndex) {
   writePaddedRow(1, selectedIndex == 1 ? "> Set presets" : "  Set presets");
 }
 
-void Display::renderConfig(int selectedIndex, bool buzzerEnabled) {
-  if (selectedIndex < 1) {
-    writePaddedRow(0, selectedIndex == 0 ? "> Quick     5/3 " : "  Quick     5/3 ");
-    writePaddedRow(1, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
-  } else {
-    writePaddedRow(0, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
+void Display::renderConfig(int selectedIndex,
+                           bool buzzerEnabled,
+                           bool quickIsActive,
+                           PresetDurations quickPreset,
+                           PresetDurations longPreset) {
+  char row0[kRowBufferSize];
+  char row1[kRowBufferSize];
 
-    char row[kRowBufferSize];
-    fillRow(row);
-    copyText(row, 0, selectedIndex == 2 ? "> " : " ");
-    copyText(row, 2, "Buzzer");
-    copyText(row, 12, buzzerEnabled ? "ON" : "OFF");
-    writePaddedRow(1, row);
+  if (selectedIndex < 2) {
+    buildPresetRow(row0, selectedIndex == 0, "Quick", quickPreset, quickIsActive);
+    buildPresetRow(row1, selectedIndex == 1, "Long", longPreset, !quickIsActive);
+  } else {
+    buildPresetRow(row0,
+                   false,
+                   quickIsActive ? "Quick" : "Long",
+                   quickIsActive ? quickPreset : longPreset,
+                   true);
+    buildBuzzerRow(row1, true, buzzerEnabled);
   }
+
+  writePaddedRow(0, row0);
+  writePaddedRow(1, row1);
 }
 
 // the timer screen keeps the top row purely visual and reserves the second row for
