@@ -119,7 +119,20 @@ void Reloj::update() {
                            timer_.sessionDurationMs());
     }
   } else {
-    display_.renderConfig(selectedItemIndex_, config_.buzzerEnabled);
+    const PresetDurations quickPreset = {
+      preset_durations::shortFocusMs,
+      preset_durations::shortBreakMs,
+    };
+    const PresetDurations longPreset = {
+      preset_durations::longFocusMs,
+      preset_durations::longBreakMs,
+    };
+
+    display_.renderConfig(selectedItemIndex_,
+                          config_.buzzerEnabled,
+                          config_.durationPreset == DurationPreset::QUICK,
+                          quickPreset,
+                          longPreset);
   }
 }
 
