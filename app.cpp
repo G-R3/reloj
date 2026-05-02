@@ -108,7 +108,7 @@ void Reloj::update() {
       const char* holdLabel = holdAction_ == HoldAction::BACK_TO_MENU ? "Hold for menu" : "Hold to skip";
       display_.renderHold(holdLabel, elapsed, button_timing::executeHoldMs, holdConfirmed_);
     } else {
-      playBuzzer();
+      maybePlayBuzzer();
       const auto t = timer_.format();
       display_.renderTimer(t.minutes,
                            t.seconds,
@@ -130,8 +130,8 @@ void Reloj::applyConfigTimerPreset() {
   }
 }
 
-void Reloj::playBuzzer() {
-  if (!timer_.hasSessionEnded() || !config_.buzzerEnabled) return;
+void Reloj::maybePlayBuzzer() {
+  if (!timer_.consumeSessionEnded() || !config_.buzzerEnabled) return;
 
   tone(pins::piezoPin, buzzer_config::toneHz, buzzer_config::toneDurationMs);
   // for (int i = 0; i < 3; i++) {
