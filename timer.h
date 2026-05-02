@@ -18,7 +18,6 @@ public:
   void reset(unsigned long now);
   void setDurations(unsigned long focusMs, unsigned long breakMs);
   void skip(unsigned long now);
-  bool hasSessionEnded() const;
 
   // Temporarily freeze countdown updates during a hold action.
   // This is separate from togglePause() because a hold is not a real user pause:
@@ -40,6 +39,7 @@ public:
   TimerState state() const;
   TimerSession session() const;
 
+  bool consumeSessionEnded();
 private:
   // Calculate the remaining time at the given moment.
   long computeRemainingMs(unsigned long now) const;
@@ -62,4 +62,7 @@ private:
   unsigned long timerFrozenAt_ = 0;
   // True when ending the freeze should restore elapsed frozen time.
   bool freezeCompensatesElapsed_ = false;
+
+  // we will use this to trigger the buzzer when a session ends. We don't use modeJustEnded_ because we don't want the buzzer to continously go off during that 1 second transition.
+  bool sessionEnded_ = false;
 };
