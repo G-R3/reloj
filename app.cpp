@@ -106,6 +106,7 @@ void Reloj::update() {
     if (holdAction_ != HoldAction::NONE) {
       const unsigned long elapsed = holdConfirmed_ ? button_timing::executeHoldMs : (now - holdStartedAt_);
       const char* holdLabel = holdAction_ == HoldAction::BACK_TO_MENU ? "Hold for menu" : "Hold to skip";
+      noTone(pins::piezoPin);
       display_.renderHold(holdLabel, elapsed, button_timing::executeHoldMs, holdConfirmed_);
     } else {
       maybePlayBuzzer();
