@@ -48,7 +48,7 @@ private:
 
   void applyConfigTimerPreset();
 
-  void playBuzzer();
+  void maybePlayBuzzer();
 
   void loadConfig();
   void saveConfig();
