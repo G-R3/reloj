@@ -2,13 +2,22 @@
 
 #include <LiquidCrystal.h>
 
+struct PresetDurations {
+  unsigned long focusMs;
+  unsigned long breakMs;
+};
+
 class Display {
 public:
   Display(LiquidCrystal& dp);
   void begin();
   void renderTimer(int minutes, int seconds, bool isFocused, bool isPaused, long remainingMs, unsigned long sessionDurationMs);
   void renderMenu(int selectedIndex);
-  void renderConfig(int selectedIndex, bool buzzerEnabled);
+  void renderConfig(int selectedIndex,
+                    bool buzzerEnabled,
+                    bool quickIsActive,
+                    PresetDurations quickPreset,
+                    PresetDurations longPreset);
 
   // Show the hold-to-confirm overlay, then briefly switch to a confirmed state once
   // the hold has completed.
