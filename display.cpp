@@ -124,7 +124,7 @@ void copyText(char row[kRowBufferSize], uint8_t startCol, const char* text) {
   }
 }
 
-// Write a clamped, zero-padded 2-digit number directly into a row buffer. Keep it 
+// Write a clamped, zero-padded 2-digit number directly into a row buffer. Keep it
 // in the range of 00 - 99
 void writeTwoDigits(char row[kRowBufferSize], uint8_t startCol, int value) {
   if (startCol + 1 >= kLcdColumns) return;
@@ -219,7 +219,7 @@ void Display::renderMenu(int selectedIndex) {
 }
 
 void Display::renderConfig(int selectedIndex, bool buzzerEnabled) {
-  if(selectedIndex < 1) {
+  if (selectedIndex < 1) {
     writePaddedRow(0, selectedIndex == 0 ? "> Quick     5/3 " : "  Quick     5/3 ");
     writePaddedRow(1, selectedIndex == 1 ? "> Long      10/5" : "  Long      10/5");
   } else {
@@ -231,7 +231,6 @@ void Display::renderConfig(int selectedIndex, bool buzzerEnabled) {
     copyText(row, 2, "Buzzer");
     copyText(row, 12, buzzerEnabled ? "ON" : "OFF");
     writePaddedRow(1, row);
-    
   }
 }
 
