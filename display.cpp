@@ -171,22 +171,29 @@ void formatPresetDurations(char* buffer, size_t bufferSize, PresetDurations pres
   snprintf(buffer, bufferSize, "%s/%s", focus, rest);
 }
 
-// Build one preset row with a cursor for navigation and a trailing marker for the
+// Build one preset row with a cursor for nav and a trailing marker for the
 // preset that is currently active in the saved config.
 void buildPresetRow(char row[kRowBufferSize], bool isSelected, const char* label, PresetDurations preset, bool isActive) {
   fillRow(row);
   row[0] = isSelected ? '>' : ' ';
   row[1] = ' ';
 
+  const uint8_t labelLen = static_cast<uint8_t>(strlen(label));
   copyText(row, 2, label);
-  row[2 + strlen(label)] = ' ';
+  row[2 + labelLen] = ' ';
 
   char durations[12];
   formatPresetDurations(durations, sizeof(durations), preset);
-  copyText(row, static_cast<uint8_t>(3 + strlen(label)), durations);
+  const uint8_t durationsStart = static_cast<uint8_t>(3 + labelLen);
+  const uint8_t durationsLen = static_cast<uint8_t>(strlen(durations));
+  copyText(row, durationsStart, durations);
 
   if (isActive) {
-    row[kLcdColumns - 1] = '*';
+    uint8_t starCol = static_cast<uint8_t>(durationsStart + durationsLen);
+    if (starCol >= kLcdColumns) {
+      starCol = kLcdColumns - 1;
+    }
+    row[starCol] = '*';
   }
 }
 
